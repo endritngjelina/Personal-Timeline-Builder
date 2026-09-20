@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Builder Pro - Enterprise Edition</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #1a1a2e;
+            --darker-bg: #16213e;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #b8c6db;
+            --border-color: rgba(255, 255, 255, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --timeline-color: #4facfe;
+            --error-color: #ff6b6b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Header */
+        .header {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px var(--shadow-color);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1.5rem;
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        /* Category selector */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .category-item {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .category-item:hover::before {
+            opacity: 0.1;
+        }
+
+        .category-item.active {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.2);
+            transform: scale(1.05);
+        }
+
+        .category-item i {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* File upload */
+        .file-upload {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .file-upload:hover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .upload-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        /* Timeline container */
+        .timeline-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            min-height: 600px;
+            position: relative;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .view-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Timeline styles */
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 2rem 0;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+            cursor: move;
+        }
+
+        .timeline-item:nth-child(odd) {
+            padding-right: 50%;
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) {
+            padding-left: 50%;
+            text-align: left;
+        }
+
+        .timeline-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px var(--shadow-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-content:hover::before {
+            transform: scaleX(1);
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px var(--shadow-color);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            border: 4px solid var(--dark-bg);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+            z-index: 10;
+        }
+
+        .timeline-date {
+            font-size: 0.9rem;
+            color: var(--timeline-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .timeline-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-image {
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeline-image:hover {
+            transform: scale(1.02);
+        }
+
+        .timeline-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .timeline-content:hover .timeline-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        .action-btn:hover {
+            background: var(--secondary-gradient);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Drag and drop styles */
+        .timeline-item.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg) scale(1.05);
+            z-index: 1000;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--timeline-color);
+            background: rgba(79, 172, 254, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            color: var(--timeline-color);
+            transition: all 0.3s ease;
+        }
+
+        /* Search and filter */
+        .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* Empty state */
+        .empty-timeline {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-timeline i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Export modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 60px var(--shadow-color);
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Stats panel */
+        .stats-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 300px 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+
+            .timeline::before {
+                left: 2rem;
+            }
+
+            .timeline-item {
+                padding-left: 4rem !important;
+                padding-right: 0 !important;
+                text-align: left !important;
+            }
+
+            .timeline-marker {
+                left: 2rem !important;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-actions {
+                flex-wrap: wrap;
+            }
+            
+            .view-toggle {
+                flex-wrap: wrap;
+            }
+            
+            .view-btn {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Confirmation modal */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .confirmation-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .confirmation-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 60px var(--shadow-color);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        
+        .confirmation-buttons button {
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-timeline"></i>
+                <span>Timeline Builder Pro</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="showStatsBtn">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </button>
+                <button class="btn btn-primary" id="exportBtn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-primary" id="importBtn">
+                    <i class="fas fa-upload"></i> Import
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <h3><i class="fas fa-plus-circle"></i> Add Event</h3>
+            
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" class="form-control" placeholder="Enter event title..." required>
+                    <div class="error-message" id="titleError">Title is required</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate" class="form-control" required>
+                    <div class="error-message" id="dateError">Date is required</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" class="form-control" placeholder="Describe your event..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Category *</label>
+                    <div class="category-grid">
+                        <div class="category-item" data-category="work" data-icon="briefcase">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="category-item" data-category="education" data-icon="graduation-cap">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="category-item" data-category="travel" data-icon="plane">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <div class="category-item" data-category="personal" data-icon="heart">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="category-item" data-category="achievement" data-icon="trophy">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="category-item" data-category="milestone" data-icon="flag">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                    </div>
+                    <div class="error-message" id="categoryError">Please select a category</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Image</label>
+                    <div class="file-upload">
+                        <input type="file" id="eventImage" accept="image/*">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.6;"></i>
+                        <div>Click or drag to upload image</div>
+                        <div class="error-message" id="imageError">Max file size is 2MB</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-plus"></i> Add Event
+                </button>
+            </form>
+
+            <!-- Search and Filter -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <h3><i class="fas fa-search"></i> Search & Filter</h3>
+                
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search events...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+
+                <div class="form-group">
+                    <label>Filter by Category</label>
+                    <select id="categoryFilter" class="form-control">
+                        <option value="">All Categories</option>
+                        <option value="work">Work</option>
+                        <option value="education">Education</option>
+                        <option value="travel">Travel</option>
+                        <option value="personal">Personal</option>
+                        <option value="achievement">Achievement</option>
+                        <option value="milestone">Milestone</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <input type="date" id="dateFrom" class="form-control" style="margin-bottom: 0.5rem;" placeholder="From">
+                    <input type="date" id="dateTo" class="form-control" placeholder="To">
+                </div>
+                
+                <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" id="clearFiltersBtn">
+                    <i class="fas fa-times"></i> Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <div>
+                    <h2><i class="fas fa-history"></i> Your Timeline</h2>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Drag events to reorder • Click to edit</p>
+                </div>
+                <div class="timeline-controls">
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="timeline">
+                            <i class="fas fa-timeline"></i> Timeline
+                        </button>
+                        <button class="view-btn" data-view="list">
+                            <i class="fas fa-list"></i> List
+                        </button>
+                        <button class="view-btn" data-view="grid">
+                            <i class="fas fa-th"></i> Grid
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div class="stats-panel" id="statsPanel">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalEvents">0</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="thisYear">0</div>
+                    <div class="stat-label">This Year</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="categories">0</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="withImages">0</div>
+                    <div class="stat-label">With Images</div>
+                </div>
+            </div>
+
+            <div class="timeline" id="timeline">
+                <div class="empty-timeline">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h3>Start Building Your Timeline</h3>
+                    <p>Add your first event to get started!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem;">Export Timeline</h3>
+            <div style="display: grid; gap: 1rem;">
+                <button class="btn btn-primary" id="exportJsonBtn">
+                    <i class="fas fa-code"></i> Export as JSON
+                </button>
+                <button class="btn btn-primary" id="exportCsvBtn">
+                    <i class="fas fa-table"></i> Export as CSV
+                </button>
+                <button class="btn btn-primary" id="exportPdfBtn">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                </button>
+                <button class="btn btn-secondary" id="cancelExportBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import file input -->
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this event? This action cannot be undone.</p>
+            <div class="confirmation-buttons">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-primary" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content" style="max-width: 80%; max-height: 80%; text-align: center;">
+            <img id="modalImage" style="max-width: 100%; max-height: 70vh; border-radius: 12px;">
+            <button class="btn btn-secondary" id="closeImageBtn" style="margin-top: 1rem; width: 100%;">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let timelineEvents = [];
+        let selectedCategory = '';
+        let selectedIcon = 'calendar';
+        let draggedElement = null;
+        let currentView = 'timeline';
+        let currentImageBase64 = null;
+        let eventToDelete = null;
+        
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            loadFromStorage();
+            updateStats();
+        });
+
+        function initializeApp() {
+            // Category selection
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.category-item').forEach(cat => cat.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedCategory = this.dataset.category;
+                    selectedIcon = this.dataset.icon;
+                    document.getElementById('categoryError').style.display = 'none';
+                });
+            });
+
+            // Form submission
+            document.getElementById('eventForm').addEventListener('submit', handleFormSubmit);
+
+            // File upload preview
+            document.getElementById('eventImage').addEventListener('change', handleImageUpload);
+
+            // Search and filter
+            document.getElementById('searchInput').addEventListener('input', filterEvents);
+            document.getElementById('categoryFilter').addEventListener('change', filterEvents);
+            document.getElementById('dateFrom').addEventListener('change', filterEvents);
+            document.getElementById('dateTo').addEventListener('change', filterEvents);
+            document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+
+            // View toggle
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentView = this.dataset.view;
+                    renderTimeline();
+                });
+            });
+
+            // Import file handler
+            document.getElementById('importFile').addEventListener('change', handleImport);
+            
+            // Export buttons
+            document.getElementById('exportBtn').addEventListener('click', exportTimeline);
+            document.getElementById('exportJsonBtn').addEventListener('click', exportAsJSON);
+            document.getElementById('exportCsvBtn').addEventListener('click', exportAsCSV);
+            document.getElementById('exportPdfBtn').addEventListener('click', exportAsPDF);
+            document.getElementById('cancelExportBtn').addEventListener('click', () => closeModal('exportModal'));
+            
+            // Import button
+            document.getElementById('importBtn').addEventListener('click', importTimeline);
+            
+            // Stats button
+            document.getElementById('showStatsBtn').addEventListener('click', showStats);
+            
+            // Clear button
+            document.getElementById('clearBtn').addEventListener('click', clearAllEvents);
+            
+            // Confirmation modal
+            document.getElementById('cancelDeleteBtn').addEventListener('click', () => closeModal('confirmationModal'));
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteEvent);
+            
+            // Image modal
+            document.getElementById('closeImageBtn').addEventListener('click', () => closeModal('imageModal'));
+            
+            // Modal close on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate title
+            const title = document.getElementById('eventTitle').value.trim();
+            if (!title) {
+                document.getElementById('titleError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('titleError').style.display = 'none';
+            }
+            
+            // Validate date
+            const date = document.getElementById('eventDate').value;
+            if (!date) {
+                document.getElementById('dateError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('dateError').style.display = 'none';
+            }
+            
+            // Validate category
+            if (!selectedCategory) {
+                document.getElementById('categoryError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('categoryError').style.display = 'none';
+            }
+            
+            return isValid;
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            const title = document.getElementById('eventTitle').value.trim();
+            const date = document.getElementById('eventDate').value;
+            const description = document.getElementById('eventDescription').value.trim();
+            const imageInput = document.getElementById('eventImage');
+            
+            // Handle image conversion
+            let imageBase64 = null;
+            if (imageInput.files[0]) {
+                const file = imageInput.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    document.getElementById('imageError').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('imageError').style.display = 'none';
+                }
+                
+                imageBase64 = await toBase64(file);
+            }
+
+            const event = {
+                id: Date.now(),
+                title,
+                date,
+                description,
+                category: selectedCategory,
+                icon: selectedIcon,
+                image: imageBase64,
+                created: new Date().toISOString()
+            };
+
+            timelineEvents.push(event);
+            timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            saveToStorage();
+            renderTimeline();
+            updateStats();
+            resetForm();
+            showNotification('Event added successfully!', 'success');
+        }
+        
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    document.getElementById('imageError').style.display = 'block';
+                    e.target.value = '';
+                    return;
+                } else {
+                    document.getElementById('imageError').style.display = 'none';
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.createElement('img');
+                    preview.src = event.target.result;
+                    preview.className = 'upload-preview';
+                    
+                    const existingPreview = document.querySelector('.upload-preview');
+                    if (existingPreview) {
+                        existingPreview.remove();
+                    }
+                    
+                    e.target.parentNode.appendChild(preview);
+                    currentImageBase64 = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderTimeline() {
+            const timeline = document.getElementById('timeline');
+            const filteredEvents = getFilteredEvents();
+
+            if (filteredEvents.length === 0) {
+                timeline.innerHTML = `
+                    <div class="empty-timeline">
+                        <i class="fas fa-calendar-plus"></i>
+                        <h3>No events found</h3>
+                        <p>Try adjusting your filters or add a new event!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            if (currentView === 'timeline') {
+                html = renderTimelineView(filteredEvents);
+            } else if (currentView === 'list') {
+                html = renderListView(filteredEvents);
+            } else if (currentView === 'grid') {
+                html = renderGridView(filteredEvents);
+            }
+
+            timeline.innerHTML = html;
+            setupDragAndDrop();
+        }
+
+        function renderTimelineView(events) {
+            return events.map((event, index) => `
+                <div class="timeline-item" draggable="true" data-id="${event.id}" style="animation-delay: ${index * 0.1}s">
+                    <div class="timeline-content">
+                        <div class="timeline-actions">
+                            <button class="action-btn" onclick="editEvent(${event.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" onclick="duplicateEvent(${event.id})" title="Duplicate">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn" onclick="promptDeleteEvent(${event.id})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="timeline-date">${formatDate(event.date)}</div>
+                        <div class="timeline-title">${event.title}</div>
+                        ${event.description ? `<div class="timeline-description">${event.description}</div>` : ''}
+                        ${event.image ? `<img src="${event.image}" alt="${event.title}" class="timeline-image" onclick="showImageModal('${event.image}')">` : ''}
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+                            <span><i class="fas fa-tag"></i> ${event.category}</span>
+                            <span><i class="fas fa-clock"></i> ${timeAgo(event.created)}</span>
+                        </div>
+                    </div>
+                    <div class="timeline-marker">
+                        <i class="fas fa-${event.icon}"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderListView(events) {
+            return `<div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${events.map((event, index) => `
+                    <div class="timeline-content" style="max-width: 100%; animation-delay: ${index * 0.05}s;">
+                        <div class="timeline-actions">
+                            <button class="action-btn" onclick="editEvent(${event.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" onclick="duplicateEvent(${event.id})">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn" onclick="promptDeleteEvent(${event.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 50px; height: 50px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                                <i class="fas fa-${event.icon}"></i>
+                            </div>
+                            <div>
+                                <div class="timeline-date">${formatDate(event.date)}</div>
+                                <div class="timeline-title" style="margin-bottom: 0;">${event.title}</div>
+                            </div>
+                        </div>
+                        ${event.description ? `<div class="timeline-description">${event.description}</div>` : ''}
+                        ${event.image ? `<img src="${event.image}" alt="${event.title}" class="timeline-image" onclick="showImageModal('${event.image}')">` : ''}
+                    </div>
+                `).join('')}
+            </div>`;
+        }
+
+        function renderGridView(events) {
+            return `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                ${events.map((event, index) => `
+                    <div class="timeline-content" style="animation-delay: ${index * 0.05}s; height: fit-content;">
+                        <div class="timeline-actions">
+                            <button class="action-btn" onclick="editEvent(${event.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" onclick="duplicateEvent(${event.id})">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn" onclick="promptDeleteEvent(${event.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        ${event.image ? `<img src="${event.image}" alt="${event.title}" class="timeline-image" onclick="showImageModal('${event.image}')" style="margin: 0 0 1rem 0;">` : ''}
+                        <div style="text-align: center; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 1rem;">
+                                <i class="fas fa-${event.icon}" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <div class="timeline-date">${formatDate(event.date)}</div>
+                            <div class="timeline-title">${event.title}</div>
+                        </div>
+                        ${event.description ? `<div class="timeline-description">${event.description}</div>` : ''}
+                    </div>
+                `).join('')}
+            </div>`;
+        }
+
+        function setupDragAndDrop() {
+            const items = document.querySelectorAll('.timeline-item');
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.outerHTML);
+                });
+
+                item.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    draggedElement = null;
+                });
+
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    if (draggedElement && draggedElement !== this) {
+                        const draggedId = parseInt(draggedElement.dataset.id);
+                        const targetId = parseInt(this.dataset.id);
+                        reorderEvents(draggedId, targetId);
+                    }
+                });
+            });
+        }
+
+        function reorderEvents(draggedId, targetId) {
+            const draggedIndex = timelineEvents.findIndex(e => e.id === draggedId);
+            const targetIndex = timelineEvents.findIndex(e => e.id === targetId);
+            
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                const draggedEvent = timelineEvents.splice(draggedIndex, 1)[0];
+                timelineEvents.splice(targetIndex, 0, draggedEvent);
+                
+                saveToStorage();
+                renderTimeline();
+                showNotification('Timeline reordered successfully!', 'success');
+            }
+        }
+
+        function getFilteredEvents() {
+            let filtered = [...timelineEvents];
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            if (searchTerm) {
+                filtered = filtered.filter(event => 
+                    event.title.toLowerCase().includes(searchTerm) ||
+                    (event.description && event.description.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (categoryFilter) {
+                filtered = filtered.filter(event => event.category === categoryFilter);
+            }
+
+            if (dateFrom) {
+                filtered = filtered.filter(event => event.date >= dateFrom);
+            }
+
+            if (dateTo) {
+                filtered = filtered.filter(event => event.date <= dateTo);
+            }
+
+            return filtered;
+        }
+
+        function filterEvents() {
+            renderTimeline();
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            renderTimeline();
+        }
+
+        function editEvent(id) {
+            const event = timelineEvents.find(e => e.id === id);
+            if (!event) return;
+
+            document.getElementById('eventTitle').value = event.title;
+            document.getElementById('eventDate').value = event.date;
+            document.getElementById('eventDescription').value = event.description || '';
+            
+            // Select category
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.category === event.category);
+            });
+            selectedCategory = event.category;
+            selectedIcon = event.icon;
+
+            // Show image preview if exists
+            if (event.image) {
+                const preview = document.createElement('img');
+                preview.src = event.image;
+                preview.className = 'upload-preview';
+                
+                const existingPreview = document.querySelector('.upload-preview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+                
+                document.querySelector('.file-upload').appendChild(preview);
+                currentImageBase64 = event.image;
+            }
+
+            // Remove the event and let user re-add it
+            deleteEvent(id, false);
+            showNotification('Event loaded for editing', 'info');
+        }
+
+        function duplicateEvent(id) {
+            const event = timelineEvents.find(e => e.id === id);
+            if (!event) return;
+
+            const duplicated = {
+                ...event,
+                id: Date.now(),
+                title: event.title + ' (Copy)',
+                created: new Date().toISOString()
+            };
+
+            timelineEvents.push(duplicated);
+            timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            saveToStorage();
+            renderTimeline();
+            updateStats();
+            showNotification('Event duplicated successfully!', 'success');
+        }
+        
+        function promptDeleteEvent(id) {
+            eventToDelete = id;
+            document.getElementById('confirmationModal').classList.add('active');
+        }
+        
+        function confirmDeleteEvent() {
+            if (eventToDelete) {
+                deleteEvent(eventToDelete, true);
+                eventToDelete = null;
+                closeModal('confirmationModal');
+            }
+        }
+
+        function deleteEvent(id, showNotificationFlag = true) {
+            timelineEvents = timelineEvents.filter(e => e.id !== id);
+            saveToStorage();
+            renderTimeline();
+            updateStats();
+            
+            if (showNotificationFlag) {
+                showNotification('Event deleted successfully!', 'success');
+            }
+        }
+        
+        function clearAllEvents() {
+            if (timelineEvents.length === 0) {
+                showNotification('Timeline is already empty', 'info');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to clear all events? This action cannot be undone.')) {
+                timelineEvents = [];
+                saveToStorage();
+                renderTimeline();
+                updateStats();
+                showNotification('All events cleared', 'success');
+            }
+        }
+
+        function updateStats() {
+            const currentYear = new Date().getFullYear();
+            const thisYearEvents = timelineEvents.filter(e => new Date(e.date).getFullYear() === currentYear);
+            const categories = [...new Set(timelineEvents.map(e => e.category))];
+            const withImages = timelineEvents.filter(e => e.image);
+
+            document.getElementById('totalEvents').textContent = timelineEvents.length;
+            document.getElementById('thisYear').textContent = thisYearEvents.length;
+            document.getElementById('categories').textContent = categories.length;
+            document.getElementById('withImages').textContent = withImages.length;
+        }
+
+        function resetForm() {
+            document.getElementById('eventForm').reset();
+            document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+            selectedCategory = '';
+            selectedIcon = 'calendar';
+            
+            const preview = document.querySelector('.upload-preview');
+            if (preview) preview.remove();
+            
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            currentImageBase64 = null;
+        }
+
+        function saveToStorage() {
+            const data = {
+                events: timelineEvents,
+                version: '2.0',
+                exportedAt: new Date().toISOString()
+            };
+            
+            try {
+                const jsonData = JSON.stringify(data);
+                localStorage.setItem('timelineData', jsonData);
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showNotification('Error saving data. Storage may be full.', 'error');
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const savedData = localStorage.getItem('timelineData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    timelineEvents = data.events || [];
+                    renderTimeline();
+                    updateStats();
+                    return;
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showNotification('Error loading saved data', 'error');
+            }
+            
+            // Load sample data if no saved data
+            loadSampleData();
+        }
+        
+        function loadSampleData() {
+            timelineEvents = [
+                {
+                    id: 1,
+                    title: 'Started My Career',
+                    date: '2020-06-15',
+                    description: 'Began my journey as a Software Developer at TechCorp',
+                    category: 'work',
+                    icon: 'briefcase',
+                    image: null,
+                    created: '2024-01-01T00:00:00.000Z'
+                },
+                {
+                    id: 2,
+                    title: 'Graduated University',
+                    date: '2020-05-20',
+                    description: 'Earned my Bachelor\'s degree in Computer Science with honors',
+                    category: 'education',
+                    icon: 'graduation-cap',
+                    image: null,
+                    created: '2024-01-02T00:00:00.000Z'
+                },
+                {
+                    id: 3,
+                    title: 'Trip to Japan',
+                    date: '2021-10-12',
+                    description: 'Amazing cultural experience visiting Tokyo and Kyoto',
+                    category: 'travel',
+                    icon: 'plane',
+                    image: null,
+                    created: '2024-01-03T00:00:00.000Z'
+                },
+                {
+                    id: 4,
+                    title: 'Got Promoted',
+                    date: '2022-03-01',
+                    description: 'Promoted to Senior Software Engineer',
+                    category: 'achievement',
+                    icon: 'trophy',
+                    image: null,
+                    created: '2024-01-04T00:00:00.000Z'
+                }
+            ];
+            
+            saveToStorage();
+            renderTimeline();
+            updateStats();
+        }
+
+        function exportTimeline() {
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function exportAsJSON() {
+            const data = {
+                events: timelineEvents,
+                exportedAt: new Date().toISOString(),
+                version: '2.0',
+                title: 'Personal Timeline Export'
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            downloadFile(blob, 'timeline-export.json');
+            closeModal('exportModal');
+            showNotification('Timeline exported as JSON!', 'success');
+        }
+
+        function exportAsCSV() {
+            const headers = ['Date', 'Title', 'Description', 'Category', 'Created'];
+            const rows = timelineEvents.map(event => [
+                event.date,
+                `"${event.title}"`,
+                `"${event.description || ''}"`,
+                event.category,
+                event.created
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            downloadFile(blob, 'timeline-export.csv');
+            closeModal('exportModal');
+            showNotification('Timeline exported as CSV!', 'success');
+        }
+
+        function exportAsPDF() {
+            // For a real implementation, you'd use a PDF library like jsPDF
+            const content = timelineEvents.map(event => `
+${formatDate(event.date)} - ${event.title}
+${event.description || ''}
+Category: ${event.category}
+---
+            `).join('\n');
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            downloadFile(blob, 'timeline-export.txt');
+            closeModal('exportModal');
+            showNotification('Timeline exported as text file!', 'success');
+        }
+
+        function importTimeline() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.events && Array.isArray(data.events)) {
+                        if (confirm('This will replace your current timeline. Are you sure?')) {
+                            timelineEvents = data.events;
+                            saveToStorage();
+                            renderTimeline();
+                            updateStats();
+                            showNotification('Timeline imported successfully!', 'success');
+                        }
+                    } else {
+                        showNotification('Invalid file format', 'error');
+                    }
+                } catch (error) {
+                    showNotification('Error reading file', 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showStats() {
+            const statsData = {
+                totalEvents: timelineEvents.length,
+                categories: [...new Set(timelineEvents.map(e => e.category))],
+                dateRange: timelineEvents.length > 0 ? {
+                    earliest: Math.min(...timelineEvents.map(e => new Date(e.date))),
+                    latest: Math.max(...timelineEvents.map(e => new Date(e.date)))
+                } : null,
+                withImages: timelineEvents.filter(e => e.image).length,
+                averageDescriptionLength: timelineEvents.reduce((acc, e) => acc + (e.description?.length || 0), 0) / timelineEvents.length
+            };
+
+            alert(`Timeline Analytics:
+Total Events: ${statsData.totalEvents}
+Categories: ${statsData.categories.join(', ')}
+Events with Images: ${statsData.withImages}
+Average Description Length: ${Math.round(statsData.averageDescriptionLength)} characters`);
+        }
+        
+        function showImageModal(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function timeAgo(dateString) {
+            const now = new Date();
+            const past = new Date(dateString);
+            const diffInSeconds = Math.floor((now - past) / 1000);
+
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                z-index: 10001;
+                animation: slideIn 0.3s ease;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+
+            const colors = {
+                success: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                error: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            };
+
+            notification.style.background = colors[type] || colors.info;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}"></i> ${message}`;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
