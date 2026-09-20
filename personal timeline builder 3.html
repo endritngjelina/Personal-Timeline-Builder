@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Timeline Builder - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --surface: #ffffff;
+            --surface-hover: #f7fafc;
+            --success: #10B981;
+            --error: #EF4444;
+            --info: #3B82F6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--primary-gradient);
+            overflow: hidden;
+        }
+
+        .bg-animation::before,
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite linear;
+        }
+
+        .bg-animation::before {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-animation::after {
+            bottom: 10%;
+            right: 10%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow-light);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        /* Timeline Controls */
+        .timeline-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* Event Templates */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .template-item {
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .template-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .template-item:active {
+            cursor: grabbing;
+        }
+
+        .template-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .template-title {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Main Canvas */
+        .main-canvas {
+            flex: 1;
+            padding: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .canvas-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--glass-bg);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Timeline Container */
+        .timeline-container {
+            height: calc(100vh - 180px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: auto;
+            padding: 2rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-gradient);
+            transform: translateX(-50%);
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        /* Timeline Events */
+        .timeline-event {
+            position: relative;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow-light);
+            width: 45%;
+            cursor: move;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+
+        .timeline-event:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-heavy);
+            border-color: var(--glass-border);
+        }
+
+        .timeline-event.left {
+            left: 0;
+            margin-right: auto;
+        }
+
+        .timeline-event.right {
+            right: 0;
+            margin-left: auto;
+        }
+
+        .timeline-event.selected {
+            border-color: #667eea;
+            transform: translateY(-4px);
+        }
+
+        .event-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+            border: 3px solid white;
+        }
+
+        .timeline-event.left .event-dot {
+            right: -60px;
+        }
+
+        .timeline-event.right .event-dot {
+            left: -60px;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .event-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-date {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: #f7fafc;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .event-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .event-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .event-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .event-tag {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .timeline-event:hover .event-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: #f7fafc;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-heavy);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #f7fafc;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .close-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed transparent;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .drop-zone.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            pointer-events: auto;
+        }
+
+        /* Export Panel */
+        .export-panel {
+            position: fixed;
+            top: 50%;
+            right: -300px;
+            transform: translateY(-50%);
+            width: 280px;
+            background: var(--surface);
+            border-radius: 16px 0 0 16px;
+            box-shadow: var(--shadow-heavy);
+            padding: 1.5rem;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 500;
+        }
+
+        .export-panel.active {
+            right: 0;
+        }
+
+        .export-toggle {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 60px;
+            background: var(--surface);
+            border: none;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-weight: 600;
+            transform: translateX(300px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--error);
+        }
+
+        .notification.info {
+            background: var(--info);
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            position: fixed;
+            top: 50%;
+            left: -300px;
+            transform: translateY(-50%);
+            width: 280px;
+            background: var(--surface);
+            border-radius: 0 16px 16px 0;
+            box-shadow: var(--shadow-heavy);
+            padding: 1.5rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 500;
+        }
+
+        .stats-panel.active {
+            left: 0;
+        }
+
+        .stats-toggle {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 60px;
+            background: var(--surface);
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .stats-item {
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stats-label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stats-value {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .timeline-event {
+                width: 80%;
+                left: 10% !important;
+                right: auto !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            
+            .timeline-event .event-dot {
+                left: -60px !important;
+                right: auto !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
+            
+            .main-canvas {
+                padding: 1rem;
+            }
+            
+            .canvas-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .timeline-container {
+                height: calc(100vh - 400px);
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-gradient);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">Timeline Builder Pro</div>
+            
+            <div class="section">
+                <div class="section-title">Quick Actions</div>
+                <div class="timeline-controls">
+                    <button class="btn btn-primary" onclick="addEvent()">
+                        <span>➕</span> Add Event
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveTimeline()">
+                        <span>💾</span> Save Timeline
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTimeline()">
+                        <span>📁</span> Load Timeline
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleExportPanel()">
+                        <span>📤</span> Export Options
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleStatsPanel()">
+                        <span>📊</span> Timeline Stats
+                    </button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Event Templates</div>
+                <div class="template-grid">
+                    <div class="template-item" draggable="true" data-type="milestone">
+                        <div class="template-icon">🎯</div>
+                        <div class="template-title">Milestone</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="achievement">
+                        <div class="template-icon">🏆</div>
+                        <div class="template-title">Achievement</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="travel">
+                        <div class="template-icon">✈️</div>
+                        <div class="template-title">Travel</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="education">
+                        <div class="template-icon">🎓</div>
+                        <div class="template-title">Education</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="career">
+                        <div class="template-icon">💼</div>
+                        <div class="template-title">Career</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="relationship">
+                        <div class="template-icon">❤️</div>
+                        <div class="template-title">Relationship</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="project">
+                        <div class="template-icon">🚀</div>
+                        <div class="template-title">Project</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="health">
+                        <div class="template-icon">🏥</div>
+                        <div class="template-title">Health</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Canvas -->
+        <div class="main-canvas">
+            <div class="canvas-header">
+                <div class="canvas-title">My Personal Timeline</div>
+                <div class="canvas-controls">
+                    <div class="zoom-control">
+                        <button class="zoom-btn" onclick="zoomOut()">-</button>
+                        <span id="zoom-level">100%</span>
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline-container" id="timeline-container">
+                <div class="timeline-line"></div>
+                <div class="drop-zone" id="drop-zone"></div>
+                <!-- Events will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Panel -->
+    <div class="export-panel" id="export-panel">
+        <button class="export-toggle" onclick="toggleExportPanel()">📤</button>
+        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Export Timeline</h3>
+        <div class="timeline-controls">
+            <button class="btn btn-primary" onclick="exportToPDF()">
+                <span>📄</span> Export as PDF
+            </button>
+            <button class="btn btn-secondary" onclick="exportToImage()">
+                <span>🖼️</span> Export as Image
+            </button>
+            <button class="btn btn-secondary" onclick="exportToJSON()">
+                <span>💾</span> Export as JSON
+            </button>
+            <button class="btn btn-secondary" onclick="shareTimeline()">
+                <span>🔗</span> Share Link
+            </button>
+        </div>
+    </div>
+    
+    <!-- Stats Panel -->
+    <div class="stats-panel" id="stats-panel">
+        <button class="stats-toggle" onclick="toggleStatsPanel()">📊</button>
+        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Timeline Statistics</h3>
+        <div id="stats-content">
+            <div class="stats-item">
+                <div class="stats-label">Total Events</div>
+                <div id="total-events" class="stats-value">0</div>
+            </div>
+            <div class="stats-item">
+                <div class="stats-label">Date Range</div>
+                <div id="date-range" class="stats-value">N/A</div>
+            </div>
+            <div class="stats-item">
+                <div class="stats-label">Events by Type</div>
+                <div id="events-by-type" class="stats-value">No data</div>
+            </div>
+            <div class="stats-item">
+                <div class="stats-label">Average per Year</div>
+                <div id="avg-per-year" class="stats-value">0</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Modal -->
+    <div class="modal" id="event-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add/Edit Event</div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="event-form">
+                <div class="form-group">
+                    <label class="form-label">Event Title</label>
+                    <input type="text" class="form-input" id="event-title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="event-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Event Type</label>
+                    <select class="form-input" id="event-type">
+                        <option value="milestone">🎯 Milestone</option>
+                        <option value="achievement">🏆 Achievement</option>
+                        <option value="travel">✈️ Travel</option>
+                        <option value="education">🎓 Education</option>
+                        <option value="career">💼 Career</option>
+                        <option value="relationship">❤️ Relationship</option>
+                        <option value="project">🚀 Project</option>
+                        <option value="health">🏥 Health</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="event-description" placeholder="Tell the story of this event..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags (comma-separated)</label>
+                    <input type="text" class="form-input" id="event-tags" placeholder="personal, achievement, important">
+                </div>
+                <div class="timeline-controls">
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let timelineEvents = [];
+        let currentEventId = null;
+        let zoomLevel = 1;
+        let draggedElement = null;
+
+        // Event type icons
+        const eventIcons = {
+            milestone: '🎯',
+            achievement: '🏆',
+            travel: '✈️',
+            education: '🎓',
+            career: '💼',
+            relationship: '❤️',
+            project: '🚀',
+            health: '🏥'
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+            setupEventHandlers();
+            loadSampleData();
+            updateStats();
+        });
+
+        function setupEventHandlers() {
+            // Form submission
+            document.getElementById('event-form').addEventListener('submit', handleFormSubmit);
+            
+            // Close modal on escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+            
+            // Close modal on backdrop click
+            document.getElementById('event-modal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        }
+
+        function setupDragAndDrop() {
+            const templates = document.querySelectorAll('.template-item');
+            const dropZone = document.getElementById('drop-zone');
+            const timelineContainer = document.getElementById('timeline-container');
+
+            templates.forEach(template => {
+                template.addEventListener('dragstart', function(e) {
+                    draggedElement = {
+                        type: this.dataset.type,
+                        isTemplate: true
+                    };
+                });
+            });
+
+            timelineContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('active');
+            });
+
+            timelineContainer.addEventListener('dragleave', function(e) {
+                if (!timelineContainer.contains(e.relatedTarget)) {
+                    dropZone.classList.remove('active');
+                }
+            });
+
+            timelineContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                
+                if (draggedElement && draggedElement.isTemplate) {
+                    addEventFromTemplate(draggedElement.type);
+                }
+                draggedElement = null;
+            });
+        }
+
+        function addEvent() {
+            currentEventId = null;
+            resetForm();
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function addEventFromTemplate(type) {
+            currentEventId = null;
+            resetForm();
+            document.getElementById('event-type').value = type;
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function editEvent(id) {
+            const event = timelineEvents.find(e => e.id === id);
+            if (!event) return;
+
+            currentEventId = id;
+            document.getElementById('event-title').value = event.title;
+            document.getElementById('event-date').value = event.date;
+            document.getElementById('event-type').value = event.type;
+            document.getElementById('event-description').value = event.description;
+            document.getElementById('event-tags').value = event.tags.join(', ');
+            
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function deleteEvent(id) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                timelineEvents = timelineEvents.filter(e => e.id !== id);
+                renderTimeline();
+                showNotification('Event deleted successfully', 'success');
+                updateStats();
+            }
+        }
+
+        function duplicateEvent(id) {
+            const event = timelineEvents.find(e => e.id === id);
+            if (!event) return;
+
+            const newEvent = {
+                ...event,
+                id: Date.now() + Math.random(),
+                title: event.title + ' (Copy)',
+                date: event.date
+            };
+
+            timelineEvents.push(newEvent);
+            renderTimeline();
+            showNotification('Event duplicated successfully', 'success');
+            updateStats();
+        }
+
+        function resetForm() {
+            document.getElementById('event-form').reset();
+            document.getElementById('event-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function closeModal() {
+            document.getElementById('event-modal').classList.remove('active');
+            currentEventId = null;
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            const timeline = container.querySelector('.timeline-line');
+            const dropZone = container.querySelector('.drop-zone');
+            
+            // Clear existing events
+            container.querySelectorAll('.timeline-event').forEach(el => el.remove());
+
+            // Sort events by date
+            const sortedEvents = [...timelineEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedEvents.forEach((event, index) => {
+                const eventElement = createEventElement(event, index);
+                container.appendChild(eventElement);
+                
+                // Add entrance animation
+                setTimeout(() => {
+                    eventElement.style.opacity = '1';
+                    eventElement.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        function createEventElement(event, index) {
+            const eventEl = document.createElement('div');
+            eventEl.className = `timeline-event ${index % 2 === 0 ? 'left' : 'right'}`;
+            eventEl.style.opacity = '0';
+            eventEl.style.transform = 'translateY(20px)';
+            eventEl.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            eventEl.innerHTML = `
+                <div class="event-dot"></div>
+                <div class="event-header">
+                    <div>
+                        <div class="event-icon">${eventIcons[event.type] || '📅'}</div>
+                        <div class="event-date">${formattedDate}</div>
+                    </div>
+                    <div class="event-actions">
+                        <button class="action-btn" onclick="editEvent('${event.id}')" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="duplicateEvent('${event.id}')" title="Duplicate">📋</button>
+                        <button class="action-btn" onclick="deleteEvent('${event.id}')" title="Delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="event-title">${event.title}</div>
+                <div class="event-description">${event.description || 'No description provided.'}</div>
+                ${event.tags.length > 0 ? `
+                    <div class="event-tags">
+                        ${event.tags.map(tag => `<span class="event-tag">${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            // Add click handler for selection
+            eventEl.addEventListener('click', function(e) {
+                if (e.target.classList.contains('action-btn')) return;
+                
+                document.querySelectorAll('.timeline-event').forEach(el => el.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+
+            return eventEl;
+        }
+
+        function zoomIn() {
+            if (zoomLevel < 2) {
+                zoomLevel += 0.1;
+                updateZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (zoomLevel > 0.5) {
+                zoomLevel -= 0.1;
+                updateZoom();
+            }
+        }
+
+        function updateZoom() {
+            const container = document.getElementById('timeline-container');
+            container.style.transform = `scale(${zoomLevel})`;
+            container.style.transformOrigin = 'center top';
+            document.getElementById('zoom-level').textContent = Math.round(zoomLevel * 100) + '%';
+        }
+
+        function saveTimeline() {
+            try {
+                const timelineData = {
+                    events: timelineEvents,
+                    metadata: {
+                        createdAt: new Date().toISOString(),
+                        version: '1.0',
+                        totalEvents: timelineEvents.length
+                    }
+                };
+                
+                const dataStr = JSON.stringify(timelineData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `timeline_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                showNotification('Timeline saved successfully', 'success');
+            } catch (error) {
+                showNotification('Error saving timeline', 'error');
+            }
+        }
+
+        function loadTimeline() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        timelineEvents = data.events || data; // Support both new and old formats
+                        renderTimeline();
+                        updateStats();
+                        showNotification('Timeline loaded successfully', 'success');
+                    } catch (error) {
+                        showNotification('Error loading timeline: Invalid file format', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function toggleExportPanel() {
+            const panel = document.getElementById('export-panel');
+            panel.classList.toggle('active');
+        }
+
+        function toggleStatsPanel() {
+            const panel = document.getElementById('stats-panel');
+            panel.classList.toggle('active');
+        }
+
+        function updateStats() {
+            document.getElementById('total-events').textContent = timelineEvents.length;
+            
+            if (timelineEvents.length > 0) {
+                const dates = timelineEvents.map(e => new Date(e.date)).sort((a, b) => a - b);
+                const startDate = dates[0];
+                const endDate = dates[dates.length - 1];
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
+                const rangeYears = endYear - startYear + 1;
+                
+                document.getElementById('date-range').textContent = `${startYear} - ${endYear}`;
+                document.getElementById('avg-per-year').textContent = (timelineEvents.length / rangeYears).toFixed(1);
+                
+                // Events by type
+                const typeCount = {};
+                timelineEvents.forEach(event => {
+                    typeCount[event.type] = (typeCount[event.type] || 0) + 1;
+                });
+                
+                const typeHTML = Object.entries(typeCount)
+                    .map(([type, count]) => `${eventIcons[type] || '📅'} ${type}: ${count}`)
+                    .join('<br>');
+                
+                document.getElementById('events-by-type').innerHTML = typeHTML;
+            } else {
+                document.getElementById('date-range').textContent = 'N/A';
+                document.getElementById('avg-per-year').textContent = '0';
+                document.getElementById('events-by-type').textContent = 'No data';
+            }
+        }
+
+        function exportToPDF() {
+            showNotification('PDF export feature coming soon!', 'info');
+        }
+
+        function exportToImage() {
+            try {
+                const container = document.getElementById('timeline-container');
+                
+                // Create a canvas for export
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas dimensions
+                canvas.width = container.scrollWidth;
+                canvas.height = container.scrollHeight;
+                
+                // Simple implementation - in production, use html2canvas library
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#333333';
+                ctx.font = '20px Arial';
+                ctx.fillText('Timeline Export', 50, 50);
+                ctx.fillText('(Use html2canvas library for full implementation)', 50, 80);
+                
+                // Download the canvas as image
+                const link = document.createElement('a');
+                link.download = `timeline_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                
+                showNotification('Image export completed', 'success');
+            } catch (error) {
+                showNotification('Error exporting image', 'error');
+            }
+        }
+
+        function exportToJSON() {
+            saveTimeline(); // Reuse the save functionality
+        }
+
+        function shareTimeline() {
+            try {
+                const timelineData = encodeURIComponent(JSON.stringify(timelineEvents));
+                const shareUrl = `${window.location.origin}${window.location.pathname}?data=${timelineData}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'My Personal Timeline',
+                        text: 'Check out my personal timeline!',
+                        url: shareUrl
+                    });
+                } else {
+                    navigator.clipboard.writeText(shareUrl);
+                    showNotification('Share link copied to clipboard!', 'success');
+                }
+            } catch (error) {
+                showNotification('Error creating share link', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(300px)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        function loadSampleData() {
+            const sampleEvents = [
+                {
+                    id: Date.now() + 1,
+                    title: 'Started College',
+                    date: '2020-09-01',
+                    type: 'education',
+                    description: 'Began my journey in Computer Science at State University. Excited to learn and grow!',
+                    tags: ['education', 'milestone'],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: Date.now() + 2,
+                    title: 'First Internship',
+                    date: '2021-06-15',
+                    type: 'career',
+                    description: 'Landed my first internship at a tech startup. Great learning experience!',
+                    tags: ['career', 'achievement'],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: Date.now() + 3,
+                    title: 'Europe Backpacking Trip',
+                    date: '2022-07-10',
+                    type: 'travel',
+                    description: 'Amazing month-long adventure across 12 European countries. Life-changing experience!',
+                    tags: ['travel', 'adventure', 'personal'],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: Date.now() + 4,
+                    title: 'Graduated with Honors',
+                    date: '2024-05-20',
+                    type: 'achievement',
+                    description: 'Successfully completed my Bachelor\'s degree with summa cum laude honors.',
+                    tags: ['education', 'achievement', 'milestone'],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: Date.now() + 5,
+                    title: 'Started Dream Job',
+                    date: '2024-08-01',
+                    type: 'career',
+                    description: 'Joined Adobe as a Frontend Developer. Ready to build amazing experiences!',
+                    tags: ['career', 'milestone', 'adobe'],
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            
+            timelineEvents = sampleEvents;
+            renderTimeline();
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('event-title').value;
+            const date = document.getElementById('event-date').value;
+            const type = document.getElementById('event-type').value;
+            const description = document.getElementById('event-description').value;
+            const tags = document.getElementById('event-tags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag);
+
+            const eventData = {
+                id: currentEventId || Date.now() + Math.random(),
+                title,
+                date,
+                type,
+                description,
+                tags,
+                createdAt: new Date().toISOString()
+            };
+
+            if (currentEventId) {
+                const index = timelineEvents.findIndex(e => e.id === currentEventId);
+                timelineEvents[index] = eventData;
+                showNotification('Event updated successfully', 'success');
+            } else {
+                timelineEvents.push(eventData);
+                showNotification('Event added successfully', 'success');
+            }
+
+            renderTimeline();
+            updateStats();
+            closeModal();
+        }
+
+        // Load timeline from URL parameters if available
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const data = urlParams.get('data');
+            
+            if (data) {
+                try {
+                    timelineEvents = JSON.parse(decodeURIComponent(data));
+                    renderTimeline();
+                    showNotification('Timeline loaded from shared link', 'success');
+                } catch (error) {
+                    showNotification('Error loading shared timeline', 'error');
+                }
+            }
+        }
+
+        // Initialize URL parameter check
+        document.addEventListener('DOMContentLoaded', checkUrlParams);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveTimeline();
+                        break;
+                    case 'o':
+                        e.preventDefault();
+                        loadTimeline();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        addEvent();
+                        break;
+                    case '=':
+                    case '+':
+                        e.preventDefault();
+                        zoomIn();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                }
+            }
+        });
+
+        console.log('🚀 Personal Timeline Builder Pro - Loaded Successfully');
+        console.log('💡 Keyboard Shortcuts:');
+        console.log('   Ctrl/Cmd + S: Save Timeline');
+        console.log('   Ctrl/Cmd + O: Load Timeline');
+        console.log('   Ctrl/Cmd + N: Add New Event');
+        console.log('   Ctrl/Cmd + Plus: Zoom In');
+        console.log('   Ctrl/Cmd + Minus: Zoom Out');
+        console.log('   Escape: Close Modal');
+    </script>
+</body>
+</html>
