@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Timeline Builder - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            height: fit-content;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 120px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .template-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .template-card:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .icon-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .icon-option {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .icon-option:hover, .icon-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            min-height: 800px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .timeline-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .timeline-wrapper {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .timeline-event {
+            position: relative;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            animation: eventFadeIn 0.6s ease-out forwards;
+            animation-delay: calc(var(--index, 0) * 0.1s);
+        }
+
+        @keyframes eventFadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .timeline-event:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        .timeline-event:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .event-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: calc(50% - 40px);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: move;
+            border-left: 5px solid #667eea;
+        }
+
+        .event-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .event-content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+        }
+
+        .timeline-event:nth-child(odd) .event-content::before {
+            right: -50px;
+        }
+
+        .timeline-event:nth-child(even) .event-content::before {
+            left: -50px;
+        }
+
+        .event-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .event-date {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .event-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .event-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .event-tag {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                transform: translate(-50%, -50%) scale(0.9);
+                opacity: 0;
+            }
+            to { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover,
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .drag-hint {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #999;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .event-content:hover .drag-hint {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .floating-add-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1500;
+        }
+
+        .floating-add-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .timeline-line {
+                left: 30px;
+            }
+            
+            .timeline-event {
+                flex-direction: row !important;
+            }
+            
+            .event-content {
+                width: calc(100% - 80px);
+                margin-left: 50px;
+            }
+            
+            .event-content::before {
+                left: -50px !important;
+            }
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+        }
+
+        .sortable-drag {
+            transform: rotate(5deg);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">⏱️ Timeline Builder Pro</div>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="exportTimeline()">
+                    📤 Export
+                </button>
+                <button class="btn btn-secondary" onclick="importTimeline()">
+                    📥 Import
+                </button>
+                <button class="btn btn-primary" onclick="openAddEventModal()">
+                    ➕ Add Event
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <h3>📝 Quick Templates</h3>
+            <div class="template-grid">
+                <button class="template-card" onclick="loadTemplate('career')">
+                    💼 Career
+                </button>
+                <button class="template-card" onclick="loadTemplate('education')">
+                    🎓 Education
+                </button>
+                <button class="template-card" onclick="loadTemplate('travel')">
+                    ✈️ Travel
+                </button>
+                <button class="template-card" onclick="loadTemplate('personal')">
+                    ❤️ Personal
+                </button>
+            </div>
+
+            <h3>🎨 Event Icons</h3>
+            <div class="icon-selector">
+                <div class="icon-option" data-icon="🎓">🎓</div>
+                <div class="icon-option" data-icon="💼">💼</div>
+                <div class="icon-option" data-icon="❤️">❤️</div>
+                <div class="icon-option" data-icon="✈️">✈️</div>
+                <div class="icon-option" data-icon="🏆">🏆</div>
+                <div class="icon-option" data-icon="🎉">🎉</div>
+                <div class="icon-option" data-icon="🏠">🏠</div>
+                <div class="icon-option" data-icon="💡">💡</div>
+                <div class="icon-option" data-icon="🎯">🎯</div>
+                <div class="icon-option" data-icon="⭐">⭐</div>
+                <div class="icon-option" data-icon="🚀">🚀</div>
+                <div class="icon-option" data-icon="📚">📚</div>
+            </div>
+
+            <h3>📊 Timeline Stats</h3>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalEvents">0</div>
+                    <div class="stat-label">Events</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="timeSpan">0</div>
+                    <div class="stat-label">Years</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="timeline-container">
+            <div class="timeline-header">
+                <input type="text" class="timeline-title" value="My Life Journey" placeholder="Timeline Title">
+                <select id="sortOrder">
+                    <option value="chronological">📅 Chronological</option>
+                    <option value="reverse">⏪ Reverse</option>
+                    <option value="importance">⭐ By Importance</option>
+                </select>
+            </div>
+
+            <div class="timeline-wrapper" id="timelineWrapper">
+                <div class="timeline-line"></div>
+                <div id="timelineEvents">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No events yet</h3>
+                        <p>Click "Add Event" to start building your timeline</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="floating-add-btn" onclick="openAddEventModal()">+</button>
+
+    <!-- Add/Edit Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add New Event</h2>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" required placeholder="e.g., Graduated from College">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" rows="3" placeholder="Tell your story..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventTags">Tags (comma separated)</label>
+                    <input type="text" id="eventTags" placeholder="education, milestone, achievement">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventImportance">Importance Level</label>
+                    <select id="eventImportance">
+                        <option value="1">⭐ Low</option>
+                        <option value="2">⭐⭐ Medium</option>
+                        <option value="3" selected>⭐⭐⭐ High</option>
+                        <option value="4">⭐⭐⭐⭐ Very High</option>
+                        <option value="5">⭐⭐⭐⭐⭐ Life Changing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventIcon">Icon</label>
+                    <div class="icon-selector" id="modalIconSelector">
+                        <div class="icon-option selected" data-icon="⭐">⭐</div>
+                        <div class="icon-option" data-icon="🎓">🎓</div>
+                        <div class="icon-option" data-icon="💼">💼</div>
+                        <div class="icon-option" data-icon="❤️">❤️</div>
+                        <div class="icon-option" data-icon="✈️">✈️</div>
+                        <div class="icon-option" data-icon="🏆">🏆</div>
+                        <div class="icon-option" data-icon="🎉">🎉</div>
+                        <div class="icon-option" data-icon="🏠">🏠</div>
+                        <div class="icon-option" data-icon="💡">💡</div>
+                        <div class="icon-option" data-icon="🎯">🎯</div>
+                        <div class="icon-option" data-icon="🚀">🚀</div>
+                        <div class="icon-option" data-icon="📚">📚</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventColor">Event Color</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #667eea" data-color="#667eea"></div>
+                        <div class="color-option" style="background: #f093fb" data-color="#f093fb"></div>
+                        <div class="color-option" style="background: #4facfe" data-color="#4facfe"></div>
+                        <div class="color-option" style="background: #43e97b" data-color="#43e97b"></div>
+                        <div class="color-option" style="background: #fa709a" data-color="#fa709a"></div>
+                        <div class="color-option" style="background: #ffecd2" data-color="#ffecd2"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventImage">Add Image</label>
+                    <input type="file" id="eventImage" accept="image/*">
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        💾 Save Event
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEventModal()">
+                        ❌ Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let editingIndex = -1;
+        let selectedIcon = '⭐';
+        let selectedColor = '#667eea';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateStats();
+            loadFromLocalStorage();
+        });
+
+        function setupEventListeners() {
+            // Icon selection in modal
+            document.querySelectorAll('#modalIconSelector .icon-option').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    document.querySelectorAll('#modalIconSelector .icon-option').forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedIcon = this.dataset.icon;
+                });
+            });
+
+            // Color selection
+            document.querySelectorAll('.color-option').forEach(color => {
+                color.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedColor = this.dataset.color;
+                });
+            });
+
+            // Form submission
+            document.getElementById('eventForm').addEventListener('submit', handleEventSubmission);
+
+            // Sort order change
+            document.getElementById('sortOrder').addEventListener('change', sortEvents);
+
+            // Close modal on outside click
+            document.getElementById('eventModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEventModal();
+                }
+            });
+        }
+
+        function openAddEventModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add New Event';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Reset selections
+            document.querySelectorAll('#modalIconSelector .icon-option').forEach(i => i.classList.remove('selected'));
+            document.querySelector('#modalIconSelector .icon-option[data-icon="⭐"]').classList.add('selected');
+            selectedIcon = '⭐';
+            
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            document.querySelector('.color-option[data-color="#667eea"]').classList.add('selected');
+            selectedColor = '#667eea';
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function handleEventSubmission(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            const description = document.getElementById('eventDescription').value;
+            const tags = document.getElementById('eventTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const importance = parseInt(document.getElementById('eventImportance').value);
+            const imageFile = document.getElementById('eventImage').files[0];
+
+            const eventData = {
+                id: editingIndex >= 0 ? events[editingIndex].id : Date.now(),
+                title,
+                date,
+                description,
+                tags,
+                importance,
+                icon: selectedIcon,
+                color: selectedColor,
+                image: null
+            };
+
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    eventData.image = e.target.result;
+                    saveEvent(eventData);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                if (editingIndex >= 0 && events[editingIndex].image) {
+                    eventData.image = events[editingIndex].image;
+                }
+                saveEvent(eventData);
+            }
+        }
+
+        function saveEvent(eventData) {
+            if (editingIndex >= 0) {
+                events[editingIndex] = eventData;
+            } else {
+                events.push(eventData);
+            }
+            
+            renderTimeline();
+            closeEventModal();
+            updateStats();
+            saveToLocalStorage();
+            showNotification('Event saved successfully! 🎉');
+        }
+
+        function editEvent(index) {
+            editingIndex = index;
+            const event = events[index];
+            
+            document.getElementById('modalTitle').textContent = 'Edit Event';
+            document.getElementById('eventTitle').value = event.title;
+            document.getElementById('eventDate').value = event.date;
+            document.getElementById('eventDescription').value = event.description;
+            document.getElementById('eventTags').value = event.tags.join(', ');
+            document.getElementById('eventImportance').value = event.importance;
+            
+            // Set icon selection
+            document.querySelectorAll('#modalIconSelector .icon-option').forEach(i => i.classList.remove('selected'));
+            document.querySelector(`#modalIconSelector .icon-option[data-icon="${event.icon}"]`).classList.add('selected');
+            selectedIcon = event.icon;
+            
+            // Set color selection
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`.color-option[data-color="${event.color}"]`).classList.add('selected');
+            selectedColor = event.color;
+            
+            document.getElementById('eventModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function deleteEvent(index) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                events.splice(index, 1);
+                renderTimeline();
+                updateStats();
+                saveToLocalStorage();
+                showNotification('Event deleted successfully! 🗑️');
+            }
+        }
+
+        function duplicateEvent(index) {
+            const originalEvent = events[index];
+            const duplicatedEvent = {
+                ...originalEvent,
+                id: Date.now(),
+                title: originalEvent.title + ' (Copy)'
+            };
+            events.push(duplicatedEvent);
+            renderTimeline();
+            updateStats();
+            saveToLocalStorage();
+            showNotification('Event duplicated successfully! 📋');
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineEvents');
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No events yet</h3>
+                        <p>Click "Add Event" to start building your timeline</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedEvents = [...events].sort((a, b) => {
+                const sortOrder = document.getElementById('sortOrder').value;
+                switch (sortOrder) {
+                    case 'reverse':
+                        return new Date(b.date) - new Date(a.date);
+                    case 'importance':
+                        return b.importance - a.importance;
+                    default:
+                        return new Date(a.date) - new Date(b.date);
+                }
+            });
+
+            container.innerHTML = sortedEvents.map((event, index) => {
+                const originalIndex = events.indexOf(event);
+                const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                const importanceStars = '⭐'.repeat(event.importance);
+                
+                return `
+                    <div class="timeline-event" style="--index: ${index}" data-index="${originalIndex}">
+                        <div class="event-content" style="border-left-color: ${event.color}">
+                            <div class="drag-hint">⋮⋮</div>
+                            <div class="event-header">
+                                <div class="event-icon" style="background: linear-gradient(45deg, ${event.color}, ${adjustColor(event.color, -20)})">
+                                    ${event.icon}
+                                </div>
+                                <div>
+                                    <div class="event-date">${formattedDate}</div>
+                                    <div style="font-size: 12px; color: #999;">${importanceStars}</div>
+                                </div>
+                            </div>
+                            <div class="event-title">${event.title}</div>
+                            ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                            ${event.tags.length > 0 ? `
+                                <div class="event-tags">
+                                    ${event.tags.map(tag => `<span class="event-tag" style="background: linear-gradient(45deg, ${event.color}, ${adjustColor(event.color, -20)})">${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${event.image ? `<img src="${event.image}" alt="${event.title}" class="event-image">` : ''}
+                            <div class="event-actions">
+                                <button class="action-btn" onclick="editEvent(${originalIndex})">✏️ Edit</button>
+                                <button class="action-btn" onclick="duplicateEvent(${originalIndex})">📋 Duplicate</button>
+                                <button class="action-btn" onclick="deleteEvent(${originalIndex})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Make events draggable
+            makeDraggable();
+        }
+
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace("#",""), 16);
+            const r = (num >> 16) + amount;
+            const g = (num >> 8 & 0x00FF) + amount;
+            const b = (num & 0x0000FF) + amount;
+            return "#" + (0x1000000 + (r<255?r<1?0:r:255)*0x10000 + (g<255?g<1?0:g:255)*0x100 + (b<255?b<1?0:b:255)).toString(16).slice(1);
+        }
+
+        function makeDraggable() {
+            const container = document.getElementById('timelineEvents');
+            let draggedElement = null;
+            let draggedIndex = null;
+
+            container.addEventListener('dragstart', function(e) {
+                if (e.target.closest('.timeline-event')) {
+                    draggedElement = e.target.closest('.timeline-event');
+                    draggedIndex = parseInt(draggedElement.dataset.index);
+                    draggedElement.classList.add('sortable-drag');
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+
+            container.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            });
+
+            container.addEventListener('dragend', function(e) {
+                if (draggedElement) {
+                    draggedElement.classList.remove('sortable-drag');
+                    
+                    // Update events array based on new order
+                    const newOrder = Array.from(container.querySelectorAll('.timeline-event')).map(el => 
+                        parseInt(el.dataset.index)
+                    );
+                    
+                    const reorderedEvents = newOrder.map(index => events[index]);
+                    events = reorderedEvents;
+                    
+                    renderTimeline();
+                    saveToLocalStorage();
+                    showNotification('Timeline reordered! 🔄');
+                }
+                
+                draggedElement = null;
+                draggedIndex = null;
+            });
+
+            // Make event contents draggable
+            document.querySelectorAll('.event-content').forEach(content => {
+                content.draggable = true;
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.timeline-event:not(.sortable-drag)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function sortEvents() {
+            renderTimeline();
+            saveToLocalStorage();
+        }
+
+        function updateStats() {
+            document.getElementById('totalEvents').textContent = events.length;
+            
+            if (events.length > 0) {
+                const dates = events.map(e => new Date(e.date));
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
+                const yearSpan = Math.max(1, maxDate.getFullYear() - minDate.getFullYear());
+                document.getElementById('timeSpan').textContent = yearSpan;
+            } else {
+                document.getElementById('timeSpan').textContent = '0';
+            }
+        }
+
+        function loadTemplate(type) {
+            const templates = {
+                career: [
+                    {
+                        id: Date.now() + 1,
+                        title: 'Started First Job',
+                        date: '2020-06-01',
+                        description: 'Began my career as a Software Developer at TechCorp',
+                        tags: ['career', 'milestone'],
+                        importance: 4,
+                        icon: '💼',
+                        color: '#667eea',
+                        image: null
+                    },
+                    {
+                        id: Date.now() + 2,
+                        title: 'Promoted to Senior Developer',
+                        date: '2022-03-15',
+                        description: 'Received promotion after 2 years of excellent performance',
+                        tags: ['career', 'achievement'],
+                        importance: 4,
+                        icon: '🏆',
+                        color: '#43e97b',
+                        image: null
+                    }
+                ],
+                education: [
+                    {
+                        id: Date.now() + 1,
+                        title: 'Started University',
+                        date: '2016-09-01',
+                        description: 'Began Computer Science degree at State University',
+                        tags: ['education', 'milestone'],
+                        importance: 5,
+                        icon: '🎓',
+                        color: '#4facfe',
+                        image: null
+                    },
+                    {
+                        id: Date.now() + 2,
+                        title: 'Graduated with Honors',
+                        date: '2020-05-15',
+                        description: 'Completed Bachelor of Computer Science with Summa Cum Laude',
+                        tags: ['education', 'achievement'],
+                        importance: 5,
+                        icon: '🏆',
+                        color: '#f093fb',
+                        image: null
+                    }
+                ],
+                travel: [
+                    {
+                        id: Date.now() + 1,
+                        title: 'Trip to Europe',
+                        date: '2021-07-20',
+                        description: 'Amazing 2-week backpacking adventure across 5 countries',
+                        tags: ['travel', 'adventure'],
+                        importance: 3,
+                        icon: '✈️',
+                        color: '#fa709a',
+                        image: null
+                    },
+                    {
+                        id: Date.now() + 2,
+                        title: 'Summit of Mount Whitney',
+                        date: '2022-08-12',
+                        description: 'Reached the highest peak in the contiguous United States',
+                        tags: ['travel', 'achievement', 'hiking'],
+                        importance: 4,
+                        icon: '🏔️',
+                        color: '#43e97b',
+                        image: null
+                    }
+                ],
+                personal: [
+                    {
+                        id: Date.now() + 1,
+                        title: 'Met My Partner',
+                        date: '2019-02-14',
+                        description: 'The day that changed my life forever',
+                        tags: ['love', 'milestone'],
+                        importance: 5,
+                        icon: '❤️',
+                        color: '#fa709a',
+                        image: null
+                    },
+                    {
+                        id: Date.now() + 2,
+                        title: 'Bought First Home',
+                        date: '2023-04-10',
+                        description: 'Finally achieved the dream of homeownership',
+                        tags: ['personal', 'milestone', 'achievement'],
+                        importance: 4,
+                        icon: '🏠',
+                        color: '#43e97b',
+                        image: null
+                    }
+                ]
+            };
+
+            if (templates[type]) {
+                events = [...events, ...templates[type]];
+                renderTimeline();
+                updateStats();
+                saveToLocalStorage();
+                showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} template loaded! 🎉`);
+            }
+        }
+
+        function exportTimeline() {
+            const timelineData = {
+                title: document.querySelector('.timeline-title').value,
+                events: events,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(timelineData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `timeline_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Timeline exported successfully! 📤');
+        }
+
+        function importTimeline() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const timelineData = JSON.parse(e.target.result);
+                        
+                        if (timelineData.events && Array.isArray(timelineData.events)) {
+                            events = timelineData.events;
+                            if (timelineData.title) {
+                                document.querySelector('.timeline-title').value = timelineData.title;
+                            }
+                            
+                            renderTimeline();
+                            updateStats();
+                            saveToLocalStorage();
+                            showNotification('Timeline imported successfully! 📥');
+                        } else {
+                            throw new Error('Invalid timeline format');
+                        }
+                    } catch (error) {
+                        showNotification('Error importing timeline. Please check the file format. ❌', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function saveToLocalStorage() {
+            const data = {
+                events: events,
+                title: document.querySelector('.timeline-title').value
+            };
+            localStorage.setItem('timeline_builder_data', JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('timeline_builder_data');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    if (data.events) {
+                        events = data.events;
+                        renderTimeline();
+                    }
+                    if (data.title) {
+                        document.querySelector('.timeline-title').value = data.title;
+                    }
+                }
+            } catch (error) {
+                console.log('No saved data found or error loading data');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'linear-gradient(45deg, #43e97b, #38d9a9)' : 'linear-gradient(45deg, #ff6b6b, #ee5a6f)'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 3000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                    document.head.removeChild(style);
+                }, 300);
+            }, 3000);
+        }
+
+        // Auto-save functionality
+        setInterval(() => {
+            if (events.length > 0) {
+                saveToLocalStorage();
+            }
+        }, 30000); // Auto-save every 30 seconds
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'n':
+                        e.preventDefault();
+                        openAddEventModal();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        exportTimeline();
+                        break;
+                    case 'o':
+                        e.preventDefault();
+                        importTimeline();
+                        break;
+                }
+            }
+            
+            if (e.key === 'Escape') {
+                closeEventModal();
+            }
+        });
+
+        // Search functionality
+        function filterEvents(searchTerm) {
+            const filteredEvents = events.filter(event => 
+                event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                event.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            
+            // Temporarily store original events
+            const originalEvents = [...events];
+            events = filteredEvents;
+            renderTimeline();
+            events = originalEvents; // Restore original events
+        }
+
+        // Add search functionality to header
+        document.querySelector('.timeline-header').insertAdjacentHTML('beforeend', `
+            <input type="text" placeholder="🔍 Search events..." style="
+                padding: 10px 15px;
+                border: 2px solid #e0e0e0;
+                border-radius: 20px;
+                width: 200px;
+                transition: all 0.3s ease;
+            " onkeyup="handleSearch(this.value)">
+        `);
+
+        function handleSearch(searchTerm) {
+            if (searchTerm.trim() === '') {
+                renderTimeline();
+            } else {
+                filterEvents(searchTerm);
+            }
+        }
+
+        // Add professional styling for search input
+        const searchInput = document.querySelector('input[placeholder="🔍 Search events..."]');
+        if (searchInput) {
+            searchInput.addEventListener('focus', function() {
+                this.style.borderColor = '#667eea';
+                this.style.width = '250px';
+            });
+            
+            searchInput.addEventListener('blur', function() {
+                this.style.borderColor = '#e0e0e0';
+                this.style.width = '200px';
+            });
+        }
+    </script>
+</body>
+</html>
