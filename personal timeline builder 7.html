@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Builder Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border: #475569;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .event-templates {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .template-item {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .template-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .template-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .template-icon {
+            width: 24px;
+            height: 24px;
+            font-size: 1.2rem;
+        }
+
+        .template-name {
+            font-weight: 500;
+        }
+
+        /* Timeline Area */
+        .timeline-area {
+            flex: 1;
+            padding: 2rem;
+            position: relative;
+            overflow: auto;
+        }
+
+        .timeline-container {
+            position: relative;
+            min-height: 800px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+            transform: translateX(-50%);
+        }
+
+        .timeline-event {
+            position: absolute;
+            width: 350px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-event:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .timeline-event.left {
+            left: calc(50% - 375px);
+        }
+
+        .timeline-event.right {
+            right: calc(50% - 375px);
+        }
+
+        .event-connector {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border: 4px solid var(--bg-primary);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 0 4px var(--primary);
+        }
+
+        .timeline-event.left .event-connector {
+            right: -35px;
+        }
+
+        .timeline-event.right .event-connector {
+            left: -35px;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .event-content {
+            flex: 1;
+        }
+
+        .event-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .event-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .event-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .event-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            padding: 0.25rem 0.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .event-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option.selected {
+            border-color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            position: absolute;
+            width: 100%;
+            height: 200px;
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        .drop-zone.active {
+            display: flex;
+        }
+
+        /* Animations */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .timeline-event.animate-left {
+            animation: slideInFromLeft 0.5s ease-out;
+        }
+
+        .timeline-event.animate-right {
+            animation: slideInFromRight 0.5s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .timeline-line {
+                left: 2rem;
+            }
+            
+            .timeline-event {
+                width: calc(100% - 4rem);
+                left: 4rem !important;
+                right: auto !important;
+            }
+            
+            .timeline-event .event-connector {
+                left: -35px !important;
+                right: auto !important;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success Animation */
+        @keyframes checkmark {
+            0% { transform: scale(0) rotate(45deg); }
+            50% { transform: scale(1.2) rotate(45deg); }
+            100% { transform: scale(1) rotate(45deg); }
+        }
+
+        .success-checkmark {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-right: 2px solid var(--success);
+            border-bottom: 2px solid var(--success);
+            transform: rotate(45deg);
+            animation: checkmark 0.6s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">Timeline Builder Pro</div>
+            <div class="toolbar">
+                <button class="btn btn-secondary" id="importBtn">📁 Import</button>
+                <button class="btn btn-secondary" id="exportBtn">💾 Export</button>
+                <button class="btn btn-secondary" id="previewBtn">👁️ Preview</button>
+                <button class="btn btn-primary" id="saveBtn">💾 Save Timeline</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Event Templates</h3>
+                <div class="event-templates">
+                    <div class="template-item" draggable="true" data-type="milestone">
+                        <div class="template-icon">🎯</div>
+                        <div class="template-name">Milestone</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="education">
+                        <div class="template-icon">🎓</div>
+                        <div class="template-name">Education</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="career">
+                        <div class="template-icon">💼</div>
+                        <div class="template-name">Career</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="travel">
+                        <div class="template-icon">✈️</div>
+                        <div class="template-name">Travel</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="project">
+                        <div class="template-icon">🚀</div>
+                        <div class="template-name">Project</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="achievement">
+                        <div class="template-icon">🏆</div>
+                        <div class="template-name">Achievement</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="life">
+                        <div class="template-icon">❤️</div>
+                        <div class="template-name">Life Event</div>
+                    </div>
+                    <div class="template-item" draggable="true" data-type="custom">
+                        <div class="template-icon">⭐</div>
+                        <div class="template-name">Custom</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Timeline Stats</h3>
+                <div class="timeline-stats">
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">Total Events</div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: var(--primary);" id="totalEvents">0</div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">Time Span</div>
+                        <div style="font-size: 1rem; font-weight: 500; color: var(--secondary);" id="timeSpan">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-area">
+            <div class="timeline-container" id="timelineContainer">
+                <div class="timeline-line"></div>
+                <div class="drop-zone" id="dropZone">
+                    Drop events here to add them to your timeline
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Event</h2>
+                <button class="close-btn" id="closeModal">×</button>
+            </div>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label class="form-label">Event Title *</label>
+                    <input type="text" class="form-input" id="eventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" class="form-input" id="eventDate" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="eventDescription" placeholder="Describe this event..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="eventCategory">
+                        <option value="milestone">🎯 Milestone</option>
+                        <option value="education">🎓 Education</option>
+                        <option value="career">💼 Career</option>
+                        <option value="travel">✈️ Travel</option>
+                        <option value="project">🚀 Project</option>
+                        <option value="achievement">🏆 Achievement</option>
+                        <option value="life">❤️ Life Event</option>
+                        <option value="custom">⭐ Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags (comma separated)</label>
+                    <input type="text" class="form-input" id="eventTags" placeholder="work, important, personal">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Event Color</label>
+                    <div class="color-picker" id="colorPicker">
+                        <div class="color-option selected" style="background: #6366f1" data-color="#6366f1"></div>
+                        <div class="color-option" style="background: #ec4899" data-color="#ec4899"></div>
+                        <div class="color-option" style="background: #f59e0b" data-color="#f59e0b"></div>
+                        <div class="color-option" style="background: #10b981" data-color="#10b981"></div>
+                        <div class="color-option" style="background: #ef4444" data-color="#ef4444"></div>
+                        <div class="color-option" style="background: #8b5cf6" data-color="#8b5cf6"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span id="submitText">Add Event</span>
+                        <div class="loading" id="submitLoading" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class TimelineBuilder {
+            constructor() {
+                this.events = [];
+                this.eventIdCounter = 1;
+                this.selectedColor = '#6366f1';
+                this.editingEvent = null;
+                this.draggedElement = null;
+                this.currentDropTarget = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateStats();
+                this.loadDemoData();
+            }
+
+            bindEvents() {
+                // Template drag events
+                document.querySelectorAll('.template-item').forEach(item => {
+                    item.addEventListener('dragstart', this.handleTemplateDragStart.bind(this));
+                    item.addEventListener('dragend', this.handleTemplateDragEnd.bind(this));
+                });
+
+                // Drop zone events
+                const dropZone = document.getElementById('dropZone');
+                const timelineContainer = document.getElementById('timelineContainer');
+                
+                timelineContainer.addEventListener('dragover', this.handleDragOver.bind(this));
+                timelineContainer.addEventListener('drop', this.handleDrop.bind(this));
+
+                // Modal events
+                document.getElementById('closeModal').addEventListener('click', this.closeModal.bind(this));
+                document.getElementById('cancelBtn').addEventListener('click', this.closeModal.bind(this));
+                document.getElementById('eventForm').addEventListener('submit', this.handleFormSubmit.bind(this));
+
+                // Color picker events
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.addEventListener('click', this.handleColorSelect.bind(this));
+                });
+
+                // Toolbar events
+                document.getElementById('saveBtn').addEventListener('click', this.saveTimeline.bind(this));
+                document.getElementById('exportBtn').addEventListener('click', this.exportTimeline.bind(this));
+                document.getElementById('importBtn').addEventListener('click', this.importTimeline.bind(this));
+                document.getElementById('previewBtn').addEventListener('click', this.previewTimeline.bind(this));
+
+                // Close modal on outside click
+                document.getElementById('eventModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'eventModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            handleTemplateDragStart(e) {
+                this.draggedTemplate = e.target.dataset.type;
+                e.target.style.opacity = '0.5';
+                document.getElementById('dropZone').classList.add('active');
+            }
+
+            handleTemplateDragEnd(e) {
+                e.target.style.opacity = '1';
+                document.getElementById('dropZone').classList.remove('active');
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                const dropZone = document.getElementById('dropZone');
+                const rect = document.getElementById('timelineContainer').getBoundingClientRect();
+                const y = e.clientY - rect.top;
+                
+                dropZone.style.top = (y - 100) + 'px';
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                document.getElementById('dropZone').classList.remove('active');
+                
+                if (this.draggedTemplate) {
+                    const rect = document.getElementById('timelineContainer').getBoundingClientRect();
+                    const dropY = e.clientY - rect.top;
+                    this.showEventModal(this.draggedTemplate, dropY);
+                    this.draggedTemplate = null;
+                }
+            }
+
+            showEventModal(type = 'custom', y = 100) {
+                this.editingEvent = null;
+                this.dropY = y;
+                
+                const modal = document.getElementById('eventModal');
+                const title = document.getElementById('modalTitle');
+                const categorySelect = document.getElementById('eventCategory');
+                const submitText = document.getElementById('submitText');
+                
+                title.textContent = 'Add New Event';
+                submitText.textContent = 'Add Event';
+                
+                // Reset form
+                document.getElementById('eventForm').reset();
+                categorySelect.value = type;
+                
+                // Reset color selection
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                document.querySelector('.color-option[data-color="#6366f1"]').classList.add('selected');
+                this.selectedColor = '#6366f1';
+                
+                modal.classList.add('active');
+                document.getElementById('eventTitle').focus();
+            }
+
+            showEditModal(event) {
+                this.editingEvent = event;
+                
+                const modal = document.getElementById('eventModal');
+                const title = document.getElementById('modalTitle');
+                const submitText = document.getElementById('submitText');
+                
+                title.textContent = 'Edit Event';
+                submitText.textContent = 'Update Event';
+                
+                // Fill form with event data
+                document.getElementById('eventTitle').value = event.title;
+                document.getElementById('eventDate').value = event.date;
+                document.getElementById('eventDescription').value = event.description || '';
+                document.getElementById('eventCategory').value = event.category;
+                document.getElementById('eventTags').value = event.tags ? event.tags.join(', ') : '';
+                
+                // Set color selection
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                const colorOption = document.querySelector(`.color-option[data-color="${event.color}"]`);
+                if (colorOption) {
+                    colorOption.classList.add('selected');
+                    this.selectedColor = event.color;
+                }
+                
+                modal.classList.add('active');
+                document.getElementById('eventTitle').focus();
+            }
+
+            closeModal() {
+                document.getElementById('eventModal').classList.remove('active');
+                this.editingEvent = null;
+            }
+
+            handleColorSelect(e) {
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+                this.selectedColor = e.target.dataset.color;
+            }
+
+            async handleFormSubmit(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('submitBtn');
+                const submitText = document.getElementById('submitText');
+                const submitLoading = document.getElementById('submitLoading');
+                
+                // Show loading state
+                submitText.style.display = 'none';
+                submitLoading.style.display = 'inline-block';
+                submitBtn.disabled = true;
+                
+                // Simulate processing time
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                const formData = {
+                    title: document.getElementById('eventTitle').value,
+                    date: document.getElementById('eventDate').value,
+                    description: document.getElementById('eventDescription').value,
+                    category: document.getElementById('eventCategory').value,
+                    tags: document.getElementById('eventTags').value.split(',').map(t => t.trim()).filter(t => t),
+                    color: this.selectedColor
+                };
+
+                if (this.editingEvent) {
+                    this.updateEvent(this.editingEvent.id, formData);
+                } else {
+                    this.addEvent(formData);
+                }
+
+                // Reset button state
+                submitText.style.display = 'inline';
+                submitLoading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                this.closeModal();
+            }
+
+            addEvent(eventData) {
+                const event = {
+                    id: this.eventIdCounter++,
+                    ...eventData,
+                    createdAt: new Date().toISOString(),
+                    y: this.dropY || this.calculateEventPosition()
+                };
+
+                this.events.push(event);
+                this.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                this.renderTimeline();
+                this.updateStats();
+                this.showSuccessMessage('Event added successfully!');
+            }
+
+            updateEvent(eventId, eventData) {
+                const eventIndex = this.events.findIndex(e => e.id === eventId);
+                if (eventIndex !== -1) {
+                    this.events[eventIndex] = { ...this.events[eventIndex], ...eventData };
+                    this.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    this.renderTimeline();
+                    this.updateStats();
+                    this.showSuccessMessage('Event updated successfully!');
+                }
+            }
+
+            deleteEvent(eventId) {
+                if (confirm('Are you sure you want to delete this event?')) {
+                    this.events = this.events.filter(e => e.id !== eventId);
+                    this.renderTimeline();
+                    this.updateStats();
+                    this.showSuccessMessage('Event deleted successfully!');
+                }
+            }
+
+            calculateEventPosition() {
+                const container = document.getElementById('timelineContainer');
+                const containerHeight = container.offsetHeight;
+                const eventHeight = 200;
+                const padding = 50;
+                
+                return padding + (this.events.length * (eventHeight + 40));
+            }
+
+            renderTimeline() {
+                const container = document.getElementById('timelineContainer');
+                const existingEvents = container.querySelectorAll('.timeline-event');
+                existingEvents.forEach(el => el.remove());
+
+                this.events.forEach((event, index) => {
+                    const eventElement = this.createEventElement(event, index);
+                    container.appendChild(eventElement);
+                });
+
+                // Adjust container height
+                if (this.events.length > 0) {
+                    const lastEventY = this.events.length * 250;
+                    container.style.minHeight = Math.max(800, lastEventY + 200) + 'px';
+                }
+            }
+
+            createEventElement(event, index) {
+                const isLeft = index % 2 === 0;
+                const eventEl = document.createElement('div');
+                eventEl.className = `timeline-event ${isLeft ? 'left' : 'right'} animate-${isLeft ? 'left' : 'right'}`;
+                eventEl.style.top = (index * 250 + 50) + 'px';
+                eventEl.draggable = true;
+
+                const categoryIcons = {
+                    milestone: '🎯',
+                    education: '🎓',
+                    career: '💼',
+                    travel: '✈️',
+                    project: '🚀',
+                    achievement: '🏆',
+                    life: '❤️',
+                    custom: '⭐'
+                };
+
+                eventEl.innerHTML = `
+                    <div class="event-connector"></div>
+                    <div class="event-header">
+                        <div class="event-icon" style="background: linear-gradient(135deg, ${event.color}, ${this.adjustColor(event.color, -20)})">${categoryIcons[event.category]}</div>
+                        <div class="event-content">
+                            <h3 class="event-title">${event.title}</h3>
+                            <div class="event-date">${this.formatDate(event.date)}</div>
+                        </div>
+                    </div>
+                    ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                    ${event.tags && event.tags.length > 0 ? `
+                        <div class="event-tags">
+                            ${event.tags.map(tag => `<span class="tag" style="background: ${event.color}">${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="event-controls">
+                        <div class="event-meta">
+                            ${this.getRelativeTime(event.date)}
+                        </div>
+                        <div class="control-buttons">
+                            <button class="control-btn" onclick="timeline.showEditModal(timeline.events.find(e => e.id === ${event.id}))" title="Edit">✏️</button>
+                            <button class="control-btn" onclick="timeline.duplicateEvent(${event.id})" title="Duplicate">📋</button>
+                            <button class="control-btn" onclick="timeline.deleteEvent(${event.id})" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                `;
+
+                // Add drag functionality
+                eventEl.addEventListener('dragstart', (e) => {
+                    this.draggedElement = eventEl;
+                    eventEl.style.opacity = '0.5';
+                });
+
+                eventEl.addEventListener('dragend', (e) => {
+                    eventEl.style.opacity = '1';
+                    this.draggedElement = null;
+                });
+
+                return eventEl;
+            }
+
+            duplicateEvent(eventId) {
+                const event = this.events.find(e => e.id === eventId);
+                if (event) {
+                    const duplicatedEvent = {
+                        ...event,
+                        id: this.eventIdCounter++,
+                        title: event.title + ' (Copy)',
+                        createdAt: new Date().toISOString()
+                    };
+                    this.events.push(duplicatedEvent);
+                    this.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    this.renderTimeline();
+                    this.updateStats();
+                    this.showSuccessMessage('Event duplicated successfully!');
+                }
+            }
+
+            adjustColor(color, amount) {
+                const usePound = color[0] === '#';
+                color = color.slice(usePound ? 1 : 0);
+                const num = parseInt(color, 16);
+                let r = (num >> 16) + amount;
+                let g = (num >> 8 & 0x00FF) + amount;
+                let b = (num & 0x0000FF) + amount;
+                r = r > 255 ? 255 : r < 0 ? 0 : r;
+                g = g > 255 ? 255 : g < 0 ? 0 : g;
+                b = b > 255 ? 255 : b < 0 ? 0 : b;
+                return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                return date.toLocaleDateString('en-US', options);
+            }
+
+            getRelativeTime(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = now - date;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Today';
+                if (diffDays === 1) return 'Yesterday';
+                if (diffDays > 0) return `${diffDays} days ago`;
+                if (diffDays === -1) return 'Tomorrow';
+                return `In ${Math.abs(diffDays)} days`;
+            }
+
+            updateStats() {
+                const totalEventsEl = document.getElementById('totalEvents');
+                const timeSpanEl = document.getElementById('timeSpan');
+                
+                totalEventsEl.textContent = this.events.length;
+                
+                if (this.events.length >= 2) {
+                    const dates = this.events.map(e => new Date(e.date)).sort((a, b) => a - b);
+                    const startDate = dates[0];
+                    const endDate = dates[dates.length - 1];
+                    const diffTime = Math.abs(endDate - startDate);
+                    const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
+                    const diffMonths = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+                    
+                    if (diffYears > 0) {
+                        timeSpanEl.textContent = `${diffYears}y ${diffMonths}m`;
+                    } else if (diffMonths > 0) {
+                        timeSpanEl.textContent = `${diffMonths} months`;
+                    } else {
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        timeSpanEl.textContent = `${diffDays} days`;
+                    }
+                } else {
+                    timeSpanEl.textContent = '-';
+                }
+            }
+
+            showSuccessMessage(message) {
+                // Create success notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    right: 20px;
+                    background: linear-gradient(135deg, var(--success), #059669);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                    z-index: 3000;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-weight: 500;
+                    animation: slideInFromRight 0.3s ease-out;
+                `;
+                notification.innerHTML = `<div class="success-checkmark"></div>${message}`;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideInFromRight 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            async saveTimeline() {
+                const saveBtn = document.getElementById('saveBtn');
+                const originalText = saveBtn.innerHTML;
+                
+                saveBtn.innerHTML = '💾 <div class="loading" style="display: inline-block; margin-left: 8px;"></div>';
+                saveBtn.disabled = true;
+                
+                // Simulate save operation
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                const timelineData = {
+                    events: this.events,
+                    metadata: {
+                        created: new Date().toISOString(),
+                        totalEvents: this.events.length,
+                        version: '1.0'
+                    }
+                };
+                
+                // Save to memory (would typically be sent to server)
+                window.savedTimeline = timelineData;
+                
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+                
+                this.showSuccessMessage('Timeline saved successfully!');
+            }
+
+            exportTimeline() {
+                const timelineData = {
+                    events: this.events,
+                    metadata: {
+                        exported: new Date().toISOString(),
+                        totalEvents: this.events.length,
+                        version: '1.0'
+                    }
+                };
+                
+                const dataStr = JSON.stringify(timelineData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `timeline_${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                this.showSuccessMessage('Timeline exported successfully!');
+            }
+
+            importTimeline() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const timelineData = JSON.parse(e.target.result);
+                                if (timelineData.events && Array.isArray(timelineData.events)) {
+                                    this.events = timelineData.events;
+                                    this.eventIdCounter = Math.max(...this.events.map(e => e.id)) + 1;
+                                    this.renderTimeline();
+                                    this.updateStats();
+                                    this.showSuccessMessage('Timeline imported successfully!');
+                                } else {
+                                    alert('Invalid timeline file format.');
+                                }
+                            } catch (error) {
+                                alert('Error reading timeline file.');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                
+                input.click();
+            }
+
+            previewTimeline() {
+                const previewWindow = window.open('', '_blank');
+                const previewHTML = this.generatePreviewHTML();
+                previewWindow.document.write(previewHTML);
+                previewWindow.document.close();
+            }
+
+            generatePreviewHTML() {
+                const eventsHTML = this.events.map((event, index) => {
+                    const isLeft = index % 2 === 0;
+                    const categoryIcons = {
+                        milestone: '🎯', education: '🎓', career: '💼', travel: '✈️',
+                        project: '🚀', achievement: '🏆', life: '❤️', custom: '⭐'
+                    };
+                    
+                    return `
+                        <div class="preview-event ${isLeft ? 'left' : 'right'}">
+                            <div class="preview-connector"></div>
+                            <div class="preview-content">
+                                <div class="preview-icon" style="background: ${event.color}">${categoryIcons[event.category]}</div>
+                                <h3>${event.title}</h3>
+                                <div class="preview-date">${this.formatDate(event.date)}</div>
+                                ${event.description ? `<p>${event.description}</p>` : ''}
+                                ${event.tags && event.tags.length > 0 ? `
+                                    <div class="preview-tags">
+                                        ${event.tags.map(tag => `<span class="preview-tag">${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Timeline Preview</title>
+                        <style>
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                background: #0f172a; color: #f8fafc; padding: 2rem; 
+                            }
+                            .preview-container { 
+                                max-width: 800px; margin: 0 auto; position: relative; 
+                            }
+                            .preview-line { 
+                                position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; 
+                                background: linear-gradient(180deg, #6366f1, #ec4899); 
+                                transform: translateX(-50%); 
+                            }
+                            .preview-event { 
+                                position: relative; width: 350px; margin-bottom: 3rem; 
+                                background: #1e293b; padding: 1.5rem; border-radius: 12px; 
+                            }
+                            .preview-event.left { margin-right: auto; margin-left: 0; }
+                            .preview-event.right { margin-left: auto; margin-right: 0; }
+                            .preview-connector { 
+                                position: absolute; width: 20px; height: 20px; 
+                                background: #6366f1; border: 4px solid #0f172a; 
+                                border-radius: 50%; top: 50%; transform: translateY(-50%); 
+                            }
+                            .preview-event.left .preview-connector { right: -35px; }
+                            .preview-event.right .preview-connector { left: -35px; }
+                            .preview-content { display: flex; align-items: flex-start; gap: 1rem; }
+                            .preview-icon { 
+                                width: 40px; height: 40px; border-radius: 10px; 
+                                display: flex; align-items: center; justify-content: center; 
+                                font-size: 1.2rem; flex-shrink: 0; 
+                            }
+                            .preview-content h3 { margin-bottom: 0.5rem; }
+                            .preview-date { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 0.75rem; }
+                            .preview-content p { color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem; }
+                            .preview-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+                            .preview-tag { 
+                                padding: 0.25rem 0.5rem; background: #6366f1; 
+                                color: white; border-radius: 4px; font-size: 0.8rem; 
+                            }
+                            h1 { text-align: center; margin-bottom: 3rem; color: #6366f1; }
+                            @media (max-width: 768px) {
+                                .preview-line { left: 2rem; }
+                                .preview-event { width: calc(100% - 4rem); margin-left: 4rem !important; margin-right: 0 !important; }
+                                .preview-event .preview-connector { left: -35px !important; right: auto !important; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="preview-container">
+                            <h1>My Timeline</h1>
+                            <div class="preview-line"></div>
+                            ${eventsHTML}
+                        </div>
+                    </body>
+                    </html>
+                `;
+            }
+
+            loadDemoData() {
+                const demoEvents = [
+                    {
+                        id: this.eventIdCounter++,
+                        title: 'Started College',
+                        date: '2020-09-01',
+                        description: 'Began studying Computer Science at University',
+                        category: 'education',
+                        tags: ['education', 'milestone'],
+                        color: '#6366f1',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: this.eventIdCounter++,
+                        title: 'First Internship',
+                        date: '2021-06-15',
+                        description: 'Software engineering intern at tech startup',
+                        category: 'career',
+                        tags: ['work', 'internship', 'tech'],
+                        color: '#ec4899',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: this.eventIdCounter++,
+                        title: 'Graduation',
+                        date: '2024-05-20',
+                        description: 'Graduated with honors in Computer Science',
+                        category: 'achievement',
+                        tags: ['education', 'achievement', 'milestone'],
+                        color: '#f59e0b',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+
+                this.events = demoEvents;
+                this.renderTimeline();
+                this.updateStats();
+            }
+        }
+
+        // Initialize the timeline builder
+        const timeline = new TimelineBuilder();
+    </script>
+</body>
+</html>
