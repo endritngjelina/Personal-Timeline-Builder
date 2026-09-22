@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Timeline Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1877f2;
+            --secondary-blue: #42a5f5;
+            --accent-green: #00d884;
+            --dark-bg: #18191a;
+            --card-bg: #242526;
+            --text-primary: #e4e6ea;
+            --text-secondary: #b0b3b8;
+            --border: #3a3b3c;
+            --hover-bg: #3a3b3c;
+            --gradient-primary: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
+            --gradient-secondary: linear-gradient(135deg, #00d884 0%, #1cb955 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: var(--gradient-primary);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(24, 119, 242, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '📅';
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-secondary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+
+        .sidebar h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .timeline-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .control-group input,
+        .control-group select,
+        .control-group textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus,
+        .control-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+        }
+
+        .timeline-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            position: relative;
+            min-height: 600px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gradient-primary);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            animation: slideInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .timeline-item:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .timeline-item:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timeline-item.dragging {
+            cursor: grabbing;
+            transform: rotate(3deg) scale(1.02);
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .timeline-item.drop-target {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(24, 119, 242, 0.5);
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 45%;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            transform: rotate(45deg);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -11px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -11px;
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        .event-icon {
+            position: absolute;
+            left: 50%;
+            top: 60px;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 216, 132, 0.3);
+            border: 3px solid var(--card-bg);
+            z-index: 5;
+        }
+
+        .event-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .event-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .event-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .event-image:hover {
+            transform: scale(1.02);
+        }
+
+        .event-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .timeline-item:nth-child(even) .event-actions {
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-edit {
+            background: rgba(66, 165, 245, 0.2);
+            color: var(--secondary-blue);
+            border: 1px solid var(--secondary-blue);
+        }
+
+        .btn-delete {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .timeline-filter {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .milestone-indicator {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: var(--gradient-secondary);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .milestone-indicator::before {
+            content: '⭐';
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-content {
+                width: calc(100% - 80px);
+                margin-left: 60px !important;
+                text-align: left !important;
+            }
+
+            .timeline-date {
+                left: 30px;
+                transform: translateX(-50%);
+            }
+
+            .event-icon {
+                left: 30px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo">Timeline Builder</div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportTimeline()">
+                    📥 Export
+                </button>
+                <button class="btn btn-secondary" onclick="importTimeline()">
+                    📤 Import
+                </button>
+                <button class="btn btn-primary" onclick="addEvent()">
+                    ➕ Add Event
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <h3>Timeline Controls</h3>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search events..." oninput="filterEvents()">
+            </div>
+
+            <div class="timeline-filter" id="categoryFilter">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="work">Work</button>
+                <button class="filter-btn" data-category="personal">Personal</button>
+                <button class="filter-btn" data-category="travel">Travel</button>
+                <button class="filter-btn" data-category="milestone">Milestones</button>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalEvents">0</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMilestones">0</div>
+                    <div class="stat-label">Milestones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="thisYear">0</div>
+                    <div class="stat-label">This Year</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="timeSpan">0</div>
+                    <div class="stat-label">Years Span</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Timeline Title</label>
+                <input type="text" id="timelineTitle" placeholder="My Life Journey" value="My Life Journey" onchange="updateTimelineTitle()">
+            </div>
+
+            <div class="control-group">
+                <label>Theme</label>
+                <select id="themeSelector" onchange="changeTheme()">
+                    <option value="dark">Dark</option>
+                    <option value="blue">Ocean Blue</option>
+                    <option value="green">Forest Green</option>
+                    <option value="purple">Royal Purple</option>
+                </select>
+            </div>
+
+            <div class="export-options">
+                <button class="btn btn-secondary" onclick="printTimeline()">🖨️ Print</button>
+                <button class="btn btn-secondary" onclick="shareTimeline()">🔗 Share</button>
+            </div>
+        </aside>
+
+        <main class="timeline-container">
+            <div class="timeline" id="timeline">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">📅</div>
+                    <h3>Your Timeline Awaits</h3>
+                    <p>Start building your personal timeline by adding your first event!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for adding/editing events -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">➕ Add New Event</h2>
+            <form id="eventForm" onsubmit="saveEvent(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Event Title *</label>
+                        <input type="text" id="eventTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="eventCategory">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="travel">Travel</option>
+                            <option value="education">Education</option>
+                            <option value="achievement">Achievement</option>
+                            <option value="milestone">Milestone</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Icon</label>
+                        <select id="eventIcon">
+                            <option value="🎉">🎉 Celebration</option>
+                            <option value="🎓">🎓 Education</option>
+                            <option value="💼">💼 Career</option>
+                            <option value="✈️">✈️ Travel</option>
+                            <option value="❤️">❤️ Love</option>
+                            <option value="🏠">🏠 Home</option>
+                            <option value="🚗">🚗 Transportation</option>
+                            <option value="🏆">🏆 Achievement</option>
+                            <option value="🎨">🎨 Creative</option>
+                            <option value="⚽">⚽ Sports</option>
+                            <option value="🎵">🎵 Music</option>
+                            <option value="📱">📱 Technology</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Description</label>
+                        <textarea id="eventDescription" rows="3" placeholder="Tell your story..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" id="eventTags" placeholder="important, life-changing, memorable">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isMilestone"> Mark as Milestone
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" id="eventImage" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class TimelineBuilder {
+            constructor() {
+                this.events = this.loadFromStorage();
+                this.editingIndex = -1;
+                this.draggedElement = null;
+                this.init();
+            }
+
+            init() {
+                this.renderTimeline();
+                this.updateStats();
+                this.setupEventListeners();
+                this.setupDragAndDrop();
+            }
+
+            setupEventListeners() {
+                // Category filter
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.filterByCategory(e.target.dataset.category);
+                    });
+                });
+
+                // Modal close on overlay click
+                document.getElementById('modalOverlay').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) this.closeModal();
+                });
+
+                // Auto-save functionality
+                setInterval(() => this.saveToStorage(), 30000);
+            }
+
+            setupDragAndDrop() {
+                const timeline = document.getElementById('timeline');
+                
+                timeline.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingElement = document.querySelector('.dragging');
+                    if (!draggingElement) return;
+
+                    const afterElement = this.getDragAfterElement(timeline, e.clientY);
+                    if (afterElement == null) {
+                        timeline.appendChild(draggingElement);
+                    } else {
+                        timeline.insertBefore(draggingElement, afterElement);
+                    }
+                });
+            }
+
+            getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.timeline-item:not(.dragging)')];
+                
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            addEvent() {
+                this.editingIndex = -1;
+                this.resetForm();
+                document.getElementById('modalTitle').innerHTML = '➕ Add New Event';
+                document.getElementById('modalOverlay').classList.add('active');
+            }
+
+            editEvent(index) {
+                this.editingIndex = index;
+                const event = this.events[index];
+                
+                document.getElementById('eventTitle').value = event.title;
+                document.getElementById('eventDate').value = event.date;
+                document.getElementById('eventCategory').value = event.category;
+                document.getElementById('eventIcon').value = event.icon;
+                document.getElementById('eventDescription').value = event.description || '';
+                document.getElementById('eventTags').value = event.tags ? event.tags.join(', ') : '';
+                document.getElementById('isMilestone').checked = event.isMilestone || false;
+                document.getElementById('eventImage').value = event.image || '';
+                
+                document.getElementById('modalTitle').innerHTML = '✏️ Edit Event';
+                document.getElementById('modalOverlay').classList.add('active');
+            }
+
+            saveEvent(e) {
+                e.preventDefault();
+                
+                const eventData = {
+                    title: document.getElementById('eventTitle').value,
+                    date: document.getElementById('eventDate').value,
+                    category: document.getElementById('eventCategory').value,
+                    icon: document.getElementById('eventIcon').value,
+                    description: document.getElementById('eventDescription').value,
+                    tags: document.getElementById('eventTags').value
+                        .split(',')
+                        .map(tag => tag.trim())
+                        .filter(tag => tag),
+                    isMilestone: document.getElementById('isMilestone').checked,
+                    image: document.getElementById('eventImage').value,
+                    id: this.editingIndex >= 0 ? this.events[this.editingIndex].id : Date.now()
+                };
+
+                if (this.editingIndex >= 0) {
+                    this.events[this.editingIndex] = eventData;
+                } else {
+                    this.events.push(eventData);
+                }
+
+                this.sortEventsByDate();
+                this.saveToStorage();
+                this.renderTimeline();
+                this.updateStats();
+                this.closeModal();
+            }
+
+            deleteEvent(index) {
+                if (confirm('Are you sure you want to delete this event?')) {
+                    this.events.splice(index, 1);
+                    this.saveToStorage();
+                    this.renderTimeline();
+                    this.updateStats();
+                }
+            }
+
+            sortEventsByDate() {
+                this.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+            }
+
+            renderTimeline() {
+                const timeline = document.getElementById('timeline');
+                const emptyState = document.getElementById('emptyState');
+                
+                if (this.events.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                } else {
+                    emptyState.style.display = 'none';
+                }
+
+                timeline.innerHTML = this.events.map((event, index) => `
+                    <div class="timeline-item" draggable="true" data-index="${index}"
+                         onragstart="timeline.handleDragStart(event)"
+                         onragend="timeline.handleDragEnd(event)">
+                        <div class="timeline-date">
+                            ${this.formatDate(event.date)}
+                        </div>
+                        <div class="event-icon">${event.icon}</div>
+                        ${event.isMilestone ? '<div class="milestone-indicator"></div>' : ''}
+                        <div class="timeline-content">
+                            <h3 class="event-title">${event.title}</h3>
+                            ${event.description ? `<p class="event-description">${event.description}</p>` : ''}
+                            ${event.image ? `<img src="${event.image}" alt="${event.title}" class="event-image" onerror="this.style.display='none'">` : ''}
+                            ${event.tags && event.tags.length > 0 ? `
+                                <div class="event-tags">
+                                    ${event.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div class="event-actions">
+                                <button class="action-btn btn-edit" onclick="timeline.editEvent(${index})">
+                                    ✏️ Edit
+                                </button>
+                                <button class="action-btn btn-delete" onclick="timeline.deleteEvent(${index})">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add animation delay
+                setTimeout(() => {
+                    document.querySelectorAll('.timeline-item').forEach((item, index) => {
+                        item.style.animationDelay = `${index * 0.1}s`;
+                    });
+                }, 100);
+            }
+
+            handleDragStart(e) {
+                this.draggedElement = e.target;
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            }
+
+            handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+                this.draggedElement = null;
+                
+                // Reorder events based on DOM order
+                const items = [...document.querySelectorAll('.timeline-item')];
+                const newOrder = items.map(item => parseInt(item.dataset.index));
+                const reorderedEvents = newOrder.map(index => this.events[index]);
+                this.events = reorderedEvents;
+                this.saveToStorage();
+                this.renderTimeline();
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            }
+
+            filterByCategory(category) {
+                const items = document.querySelectorAll('.timeline-item');
+                items.forEach(item => {
+                    const index = parseInt(item.dataset.index);
+                    const event = this.events[index];
+                    
+                    if (category === 'all' || event.category === category) {
+                        item.style.display = 'block';
+                        item.style.animation = 'slideInUp 0.6s ease-out forwards';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            filterEvents() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const items = document.querySelectorAll('.timeline-item');
+                
+                items.forEach(item => {
+                    const index = parseInt(item.dataset.index);
+                    const event = this.events[index];
+                    const searchableText = `${event.title} ${event.description} ${event.tags?.join(' ') || ''}`.toLowerCase();
+                    
+                    if (searchableText.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        item.style.animation = 'slideInUp 0.6s ease-out forwards';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            updateStats() {
+                const currentYear = new Date().getFullYear();
+                const totalEvents = this.events.length;
+                const totalMilestones = this.events.filter(e => e.isMilestone).length;
+                const thisYearEvents = this.events.filter(e => new Date(e.date).getFullYear() === currentYear).length;
+                
+                let timeSpan = 0;
+                if (totalEvents > 0) {
+                    const dates = this.events.map(e => new Date(e.date));
+                    const earliest = new Date(Math.min(...dates));
+                    const latest = new Date(Math.max(...dates));
+                    timeSpan = Math.ceil((latest - earliest) / (365.25 * 24 * 60 * 60 * 1000));
+                }
+
+                document.getElementById('totalEvents').textContent = totalEvents;
+                document.getElementById('totalMilestones').textContent = totalMilestones;
+                document.getElementById('thisYear').textContent = thisYearEvents;
+                document.getElementById('timeSpan').textContent = timeSpan;
+            }
+
+            updateTimelineTitle() {
+                const title = document.getElementById('timelineTitle').value;
+                document.title = `${title} - Timeline Builder`;
+                this.saveToStorage();
+            }
+
+            changeTheme() {
+                const theme = document.getElementById('themeSelector').value;
+                const root = document.documentElement;
+                
+                switch(theme) {
+                    case 'blue':
+                        root.style.setProperty('--primary-blue', '#1565c0');
+                        root.style.setProperty('--secondary-blue', '#42a5f5');
+                        root.style.setProperty('--accent-green', '#00acc1');
+                        break;
+                    case 'green':
+                        root.style.setProperty('--primary-blue', '#2e7d32');
+                        root.style.setProperty('--secondary-blue', '#66bb6a');
+                        root.style.setProperty('--accent-green', '#4caf50');
+                        break;
+                    case 'purple':
+                        root.style.setProperty('--primary-blue', '#7b1fa2');
+                        root.style.setProperty('--secondary-blue', '#ba68c8');
+                        root.style.setProperty('--accent-green', '#ab47bc');
+                        break;
+                    default:
+                        root.style.setProperty('--primary-blue', '#1877f2');
+                        root.style.setProperty('--secondary-blue', '#42a5f5');
+                        root.style.setProperty('--accent-green', '#00d884');
+                }
+                this.saveToStorage();
+            }
+
+            exportTimeline() {
+                const data = {
+                    title: document.getElementById('timelineTitle').value,
+                    events: this.events,
+                    theme: document.getElementById('themeSelector').value,
+                    exportDate: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `timeline-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.showNotification('Timeline exported successfully!', 'success');
+            }
+
+            importTimeline() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.events && Array.isArray(data.events)) {
+                                this.events = data.events;
+                                if (data.title) {
+                                    document.getElementById('timelineTitle').value = data.title;
+                                }
+                                if (data.theme) {
+                                    document.getElementById('themeSelector').value = data.theme;
+                                    this.changeTheme();
+                                }
+                                this.saveToStorage();
+                                this.renderTimeline();
+                                this.updateStats();
+                                this.showNotification('Timeline imported successfully!', 'success');
+                            } else {
+                                throw new Error('Invalid timeline format');
+                            }
+                        } catch (error) {
+                            this.showNotification('Error importing timeline: Invalid file format', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+
+            printTimeline() {
+                const printWindow = window.open('', '_blank');
+                const timelineHTML = document.querySelector('.timeline-container').innerHTML;
+                const styles = Array.from(document.styleSheets)
+                    .map(sheet => {
+                        try {
+                            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+                        } catch (e) {
+                            return '';
+                        }
+                    }).join('\n');
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${document.getElementById('timelineTitle').value}</title>
+                        <style>
+                            ${styles}
+                            body { background: white !important; color: black !important; }
+                            .timeline-container { background: white !important; }
+                            @media print {
+                                .action-btn { display: none !important; }
+                                .timeline-item { page-break-inside: avoid; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${document.getElementById('timelineTitle').value}</h1>
+                        ${timelineHTML}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+
+            shareTimeline() {
+                const shareData = {
+                    title: document.getElementById('timelineTitle').value,
+                    events: this.events.length,
+                    url: window.location.href
+                };
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: shareData.title,
+                        text: `Check out my timeline with ${shareData.events} events!`,
+                        url: shareData.url
+                    });
+                } else {
+                    navigator.clipboard.writeText(shareData.url).then(() => {
+                        this.showNotification('Link copied to clipboard!', 'success');
+                    });
+                }
+            }
+
+            showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    right: 20px;
+                    background: ${type === 'success' ? 'var(--accent-green)' : '#f44336'};
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            resetForm() {
+                document.getElementById('eventForm').reset();
+                document.getElementById('eventIcon').value = '🎉';
+                document.getElementById('eventCategory').value = 'personal';
+            }
+
+            closeModal() {
+                document.getElementById('modalOverlay').classList.remove('active');
+                this.resetForm();
+            }
+
+            saveToStorage() {
+                const data = {
+                    events: this.events,
+                    title: document.getElementById('timelineTitle').value,
+                    theme: document.getElementById('themeSelector').value
+                };
+                sessionStorage.setItem('timelineBuilder', JSON.stringify(data));
+            }
+
+            loadFromStorage() {
+                try {
+                    const data = JSON.parse(sessionStorage.getItem('timelineBuilder') || '{}');
+                    if (data.title) {
+                        setTimeout(() => {
+                            document.getElementById('timelineTitle').value = data.title;
+                        }, 100);
+                    }
+                    if (data.theme) {
+                        setTimeout(() => {
+                            document.getElementById('themeSelector').value = data.theme;
+                            this.changeTheme();
+                        }, 100);
+                    }
+                    return data.events || [];
+                } catch {
+                    return [];
+                }
+            }
+        }
+
+        // Global functions for HTML onclick events
+        const timeline = new TimelineBuilder();
+        
+        function addEvent() {
+            timeline.addEvent();
+        }
+        
+        function exportTimeline() {
+            timeline.exportTimeline();
+        }
+        
+        function importTimeline() {
+            timeline.importTimeline();
+        }
+        
+        function printTimeline() {
+            timeline.printTimeline();
+        }
+        
+        function shareTimeline() {
+            timeline.shareTimeline();
+        }
+        
+        function updateTimelineTitle() {
+            timeline.updateTimelineTitle();
+        }
+        
+        function changeTheme() {
+            timeline.changeTheme();
+        }
+        
+        function filterEvents() {
+            timeline.filterEvents();
+        }
+        
+        function saveEvent(event) {
+            timeline.saveEvent(event);
+        }
+        
+        function closeModal() {
+            timeline.closeModal();
+        }
+
+        // Add some sample data for demonstration
+        if (timeline.events.length === 0) {
+            timeline.events = [
+                {
+                    id: 1,
+                    title: "Started My Career Journey",
+                    date: "2020-06-15",
+                    category: "work",
+                    icon: "💼",
+                    description: "Began my professional career as a software developer at a tech startup.",
+                    tags: ["career", "milestone", "new-beginning"],
+                    isMilestone: true
+                },
+                {
+                    id: 2,
+                    title: "Graduated from University",
+                    date: "2020-05-20",
+                    category: "education",
+                    icon: "🎓",
+                    description: "Earned my Bachelor's degree in Computer Science with honors.",
+                    tags: ["education", "achievement", "graduation"],
+                    isMilestone: true
+                },
+                {
+                    id: 3,
+                    title: "Epic Road Trip Across Europe",
+                    date: "2021-07-10",
+                    category: "travel",
+                    icon: "✈️",
+                    description: "Traveled through 8 countries in 3 weeks, creating unforgettable memories.",
+                    tags: ["travel", "adventure", "europe", "memories"]
+                },
+                {
+                    id: 4,
+                    title: "Launched My First App",
+                    date: "2022-03-12",
+                    category: "achievement",
+                    icon: "🚀",
+                    description: "Successfully launched my first mobile application with over 10k downloads.",
+                    tags: ["achievement", "app", "programming", "success"],
+                    isMilestone: true
+                },
+                {
+                    id: 5,
+                    title: "Moved to New City",
+                    date: "2023-01-08",
+                    category: "personal",
+                    icon: "🏠",
+                    description: "Relocated to San Francisco for new opportunities and adventures.",
+                    tags: ["relocation", "new-city", "change", "opportunity"]
+                }
+            ];
+            timeline.saveToStorage();
+            timeline.renderTimeline();
+            timeline.updateStats();
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
